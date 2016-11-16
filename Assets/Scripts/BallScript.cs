@@ -3,17 +3,39 @@ using System.Collections;
 
 public class BallScript : MonoBehaviour {
 	int index;
-	Color color;
+	Sprite sprite;
+	Animator animator;
 
-	public void initiate(int index, Color color){
+	// Use this for initialization
+	void Awake () {
+		animator = GetComponent<Animator> ();
+	}
+
+	public void switchAnimationToSelected(){
+		animator.SetBool ("isSelectable", false);
+		animator.SetBool ("isSelected", true);
+	}
+
+	public void switchAnimationToSelectable(){
+		animator.SetBool ("isSelected", false);
+		animator.SetBool ("isSelectable", true);
+	}
+
+	public void switchAnimationToIdle(){
+		animator.SetBool ("isSelected", false);
+		animator.SetBool ("isSelectable", false);
+	}
+
+	public void initiate(int index, Sprite sprite){
 		this.index = index;
-		this.color = color;
+		this.sprite = sprite;
 		refresh ();
 	}
 
 	public void refresh(){
-		SpriteRenderer ballSpriteRenderer = GetComponent <SpriteRenderer>();
-		ballSpriteRenderer.color = color;
+		SpriteRenderer ballSpriteRenderer = transform.GetComponentsInChildren<SpriteRenderer>()[0];
+		ballSpriteRenderer.sprite = sprite;
+		switchAnimationToIdle ();
 	}
 
 	public void retrieved(){
@@ -22,10 +44,6 @@ public class BallScript : MonoBehaviour {
 
 	public int getIndex(){
 		return this.index;
-	}
-	// Use this for initialization
-	void Start () {
-	
 	}
 	
 	// Update is called once per frame

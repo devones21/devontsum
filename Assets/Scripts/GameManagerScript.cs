@@ -6,7 +6,8 @@ public class GameManagerScript : MonoBehaviour {
 	public Text readyText;
 	public Color readyColor;
 	public Color notReadyColor;
-	public Color[] colors;
+	public Sprite[] sprites;
+	public Sprite touchableBallSprite;
 	public BallGeneratorScript ballGenerator;
 
 	// Use this for initialization

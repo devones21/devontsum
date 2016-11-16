@@ -24,12 +24,11 @@ public class BallGeneratorScript : MonoBehaviour {
 	public void generateBall(){
 		Vector3 instantiatePosition = transform.position;
 		instantiatePosition.y += Random.Range(0.0f, 10.0f);
-		instantiatePosition.x += Random.Range(-5.0f, 5.0f);
+		instantiatePosition.x += Random.Range(-4.0f, 4.0f);
 		GameObject ball = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
 		BallScript ballScript = ball.GetComponent<BallScript> ();
-		int ballIndex = Random.Range (0, gameManager.colors.Length);
-		Color ballColor = gameManager.colors[ballIndex];
-		ballScript.initiate (ballIndex, ballColor);
+		int ballIndex = Random.Range (0, gameManager.sprites.Length);
+		ballScript.initiate (ballIndex, gameManager.sprites[ballIndex]);
 		ball.transform.parent = transform;
 	}
 

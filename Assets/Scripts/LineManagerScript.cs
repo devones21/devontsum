@@ -16,9 +16,11 @@ public class LineManagerScript : MonoBehaviour {
 		if (Input.GetMouseButtonDown(0)) {
 			if (gameManager.isAllBallNotMoving ()) {
 				BallScript ball = getBallTouched ();
-				chosenIndex = ball.getIndex ();
-				if (ball != null && canThisBallStillChain (ball)) {
-					addBall (ball);
+				if (ball != null){
+					if (canThisBallStillChain (ball)) {
+						chosenIndex = ball.getIndex ();
+						addBall (ball);
+					} 
 				} 
 				else {
 					gameManager.refreshAllBalls ();
@@ -29,7 +31,7 @@ public class LineManagerScript : MonoBehaviour {
 			}
 		}
 		else if (Input.GetMouseButton (0)) {
-			if (gameManager.isAllBallNotMoving ()) {
+			if (gameManager.isAllBallNotMoving () && chosenIndex != -1) {
 				BallScript ball = getBallTouched ();
 				if (ball != null
 					&& ball.getIndex() == chosenIndex
@@ -47,14 +49,14 @@ public class LineManagerScript : MonoBehaviour {
 			}
 		}
 		else if (Input.GetMouseButtonUp (0)) {
-			restart ();
+			retrieveBalls ();
 		}
 		//Debug.Log ("BallTouchedCount: " + ballScriptList.Count);
 	}
 
 	public void retrieveBalls(){
-		foreach(BallScript destroyedBall in ballScriptList){
-			destroyedBall.retrieved();
+		foreach(BallScript retrievedBalls in ballScriptList){
+			retrievedBalls.retrieved();
 			gameManager.ballGenerator.generateBall ();
 		}
 		restart ();
@@ -69,6 +71,7 @@ public class LineManagerScript : MonoBehaviour {
 
 	public void addBall(BallScript ball){
 		ballScriptList.Add (ball);
+		ball.switchAnimationToSelected ();
 		refreshLines ();
 	}
 
@@ -87,9 +90,18 @@ public class LineManagerScript : MonoBehaviour {
 		Vector2 mousePosition = Camera.main.ScreenToWorldPoint (Input.mousePosition);
 		Collider2D hitCollider = Physics2D.OverlapPoint (mousePosition);
 		if (hitCollider != null) {
+			//Debug.Log ("Hit Something = " + hitCollider.gameObject.name);
 			GameObject ball = hitCollider.gameObject;
 			ballScript = ball.GetComponent<BallScript> ();
+		} else {
+			//Debug.Log ("Hit Nothing");
 		}
+
+//		if (ballScript == null) {
+//			Debug.Log ("Ball Script Null");
+//		} else {
+//			Debug.Log ("Ball Script Not Null");
+//		}
 		return ballScript;
 	}
 
@@ -113,13 +125,12 @@ public class LineManagerScript : MonoBehaviour {
 
 	bool canThisBallStillChain(BallScript ball){
 		bool result = false;
-		gameManager.refreshAllBalls ();
+		//gameManager.refreshAllBalls ();
 		List<BallScript> closestBalls = new List<BallScript> ();
-		Color white = new Color (1.0f,1.0f,1.0f, 1.0f);
 		for (float x = -2.0f; x <= 2.0f; x += 0.1f) {
 			for (float y = -2.0f; y <= 2.0f; y += 0.1f) {
 				Vector2 direction = new Vector2 (x, y);
-				//Debug.DrawRay (ball.transform.position, direction, white, Mathf.Infinity);
+				Debug.DrawRay (ball.transform.position, direction, Color.white, Mathf.Infinity);
 				
 				RaycastHit2D[] hits = Physics2D.RaycastAll(ball.transform.position, direction, Mathf.Infinity);
 				if (hits.Length > 1) {
@@ -136,10 +147,13 @@ public class LineManagerScript : MonoBehaviour {
 			}
 		}
 
+		Debug.Log ("Closest Balls: " + closestBalls.Count);
+
 		foreach(BallScript closestBall in closestBalls){
 			if (isThisBallValid (ball, closestBall)) {
 				result = true;
-				closestBall.gameObject.GetComponent<SpriteRenderer> ().color = white;
+				closestBall.switchAnimationToSelectable ();
+				//closestBall.transform.GetComponentsInChildren<SpriteRenderer> ()[0].sprite = gameManager.touchableBallSprite;
 			}
 		}
 		return result;
