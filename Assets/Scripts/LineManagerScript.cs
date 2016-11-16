@@ -17,9 +17,15 @@ public class LineManagerScript : MonoBehaviour {
 			if (gameManager.isAllBallNotMoving ()) {
 				BallScript ball = getBallTouched ();
 				if (ball != null){
-					if (canThisBallStillChain (ball)) {
-						chosenIndex = ball.getIndex ();
+					chosenIndex = ball.getIndex ();
+					if (getChainableBalls (ball, ballScriptList).Count > 0) {
 						addBall (ball);
+//						List<BallScript> bestPathBalls = recursiveFunctionToGetBestPath (ball, null, null);
+//						Debug.Log (bestPathBalls.Count);
+//						foreach(BallScript selectableBall in bestPathBalls){
+//
+//							selectableBall.switchAnimationToSelectable ();
+//						}
 					} 
 				} 
 				else {
@@ -39,8 +45,11 @@ public class LineManagerScript : MonoBehaviour {
 					&& isThisBallValid(ballScriptList[ballScriptList.Count - 1], ball)) {
 					addBall (ball);
 
-					if (!canThisBallStillChain (ball)) {
+					if (getChainableBalls (ball, ballScriptList).Count == 0) {
+						Debug.Log ("No more to be chained");
 						retrieveBalls ();
+					} else {
+						Debug.Log ("More to be chained");
 					}
 				}
 			} 
@@ -106,6 +115,8 @@ public class LineManagerScript : MonoBehaviour {
 	}
 
 	bool isThisBallValid(BallScript originBall, BallScript targetBall){
+		if (ballScriptList.Contains (targetBall))
+			return false;
 		bool result = false;
 		float distance = Vector2.Distance (originBall.transform.position, targetBall.transform.position);
 		//Debug.DrawRay (lastBall.transform.position, ball.transform.position - lastBall.transform.position, white, distance);
@@ -115,7 +126,8 @@ public class LineManagerScript : MonoBehaviour {
 			if (hit.collider != null) {
 				BallScript hittedBall = hit.collider.gameObject.GetComponent<BallScript> ();
 				if (hittedBall != null 
-					&& hittedBall.gameObject.GetInstanceID () == targetBall.gameObject.GetInstanceID ()) {
+					&& hittedBall.gameObject.GetInstanceID () == targetBall.gameObject.GetInstanceID ()
+					&& originBall.getIndex() == targetBall.getIndex()) {
 					result = true;
 				}
 			}
@@ -123,41 +135,51 @@ public class LineManagerScript : MonoBehaviour {
 		return result;
 	}
 
-	bool canThisBallStillChain(BallScript ball){
-		bool result = false;
-		//gameManager.refreshAllBalls ();
-		List<BallScript> closestBalls = new List<BallScript> ();
-		for (float x = -2.0f; x <= 2.0f; x += 0.1f) {
-			for (float y = -2.0f; y <= 2.0f; y += 0.1f) {
-				Vector2 direction = new Vector2 (x, y);
-				Debug.DrawRay (ball.transform.position, direction, Color.white, Mathf.Infinity);
-				
-				RaycastHit2D[] hits = Physics2D.RaycastAll(ball.transform.position, direction, Mathf.Infinity);
-				if (hits.Length > 1) {
-					RaycastHit2D hit = hits [1];
-					if (hit.collider != null) {
-						BallScript hittedBall = hit.collider.gameObject.GetComponent<BallScript> ();
-						if (hittedBall != null
-						   && hittedBall.getIndex () == chosenIndex
-						   && !ballScriptList.Contains (hittedBall)) {
-							closestBalls.Add (hittedBall);
-						}
-					}
-				}
-			}
-		}
+	//TEMPORARILY NOT USED
+//	List<BallScript> recursiveFunctionToGetBestPath(BallScript ball, List<BallScript> result, List<BallScript> bestResult){
+//		if (result == null) {
+//			result = new List<BallScript> ();
+//		}
+//		if (bestResult == null) {
+//			bestResult = new List<BallScript> ();
+//		}
+//		result.Add (ball);
+//		if (result.Count > bestResult.Count) {
+//			bestResult = result;
+//		}
+//		List<BallScript> chainableBalls = getChainableBalls (ball, result);
+//		if (chainableBalls.Count > 0) {
+//			foreach (BallScript chainableBall in chainableBalls) {
+//				recursiveFunctionToGetBestPath (chainableBall, result, bestResult);
+//			}
+//		}
+//
+//		return bestResult;
+//	}
 
-		Debug.Log ("Closest Balls: " + closestBalls.Count);
-
-		foreach(BallScript closestBall in closestBalls){
-			if (isThisBallValid (ball, closestBall)) {
-				result = true;
-				closestBall.switchAnimationToSelectable ();
+	List<BallScript> getChainableBalls(BallScript ball, List<BallScript> list){
+		List<BallScript> result = new List<BallScript> ();
+		foreach(BallScript checkedBall in gameManager.ballGenerator.getBalls()){
+			if (!list.Contains(checkedBall) && checkedBall.getIndex() == chosenIndex && isThisBallValid (ball, checkedBall)) {
+				result.Add (checkedBall);
+				checkedBall.switchAnimationToSelectable ();
 				//closestBall.transform.GetComponentsInChildren<SpriteRenderer> ()[0].sprite = gameManager.touchableBallSprite;
 			}
 		}
 		return result;
 	}
+
+//	int numberOfChainableBalls(BallScript ball){
+//		int result = 0;
+//		foreach(BallScript checkedBall in gameManager.ballGenerator.getBalls()){
+//			if (checkedBall.getIndex() == chosenIndex && isThisBallValid (ball, checkedBall)) {
+//				result++;
+//				//checkedBall.switchAnimationToSelectable ();
+//				//closestBall.transform.GetComponentsInChildren<SpriteRenderer> ()[0].sprite = gameManager.touchableBallSprite;
+//			}
+//		}
+//		return result;
+//	}
 
 
 }
