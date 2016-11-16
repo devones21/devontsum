@@ -49,6 +49,7 @@
      <Compile Include="Assets\Scripts\BallScript.cs" />
      <Compile Include="Assets\Scripts\GameManagerScript.cs" />
      <Compile Include="Assets\Scripts\LineManagerScript.cs" />
+     <Compile Include="Assets\Scripts\ScoreEffectScript.cs" />
      <None Include="Assets\Shader\GlowSprite.shader" />
  <Reference Include="UnityEngine.Networking">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>

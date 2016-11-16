@@ -2,6 +2,7 @@
 using System.Collections;
 
 public class BallScript : MonoBehaviour {
+	public Transform scorePrefab;
 	int index;
 	Sprite sprite;
 	Animator animator;
@@ -16,6 +17,10 @@ public class BallScript : MonoBehaviour {
 		animator.SetBool ("isSelected", true);
 	}
 
+	public void switchAnimationToRetrieved(){
+		animator.SetTrigger ("isRetrieved");
+	}
+
 	public void switchAnimationToSelectable(){
 		animator.SetBool ("isSelected", false);
 		animator.SetBool ("isSelectable", true);
@@ -24,6 +29,13 @@ public class BallScript : MonoBehaviour {
 	public void switchAnimationToIdle(){
 		animator.SetBool ("isSelected", false);
 		animator.SetBool ("isSelectable", false);
+	}
+
+	public void hint(){
+		animator.SetBool ("isSelected", false);
+		animator.SetBool ("isSelectable", true);
+		Invoke ("switchAnimationToIdle", 1.0f);
+		
 	}
 
 	public void initiate(int index, Sprite sprite){
@@ -38,8 +50,15 @@ public class BallScript : MonoBehaviour {
 		switchAnimationToIdle ();
 	}
 
-	public void retrieved(){
-		Destroy (gameObject);
+	public float retrieved(int score){
+		switchAnimationToRetrieved ();
+		Vector3 position = transform.position;
+		position.z -= 1;
+		Transform scoreText = Instantiate (scorePrefab, position, Quaternion.identity) as Transform;
+		scoreText.GetComponent<ScoreEffectScript> ().setScore (score);
+		Destroy (scoreText.gameObject, animator.GetCurrentAnimatorStateInfo (0).length);
+		Destroy (gameObject, animator.GetCurrentAnimatorStateInfo(0).length);
+		return animator.GetCurrentAnimatorStateInfo (0).length;
 	}
 
 	public int getIndex(){
