@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class BallGeneratorScript : MonoBehaviour {
@@ -10,37 +11,31 @@ public class BallGeneratorScript : MonoBehaviour {
 	Color[] colors;
 	// Use this for initialization
 	void Start () {
-		Invoke("initiateBall",ballGenerateTimeInSeconds);
+		IEnumerator initBalls = initiateBall ();
+		StartCoroutine (initBalls);
 	}
 
-	void initiateBall(){
-		invokedBalls++;
-		if (invokedBalls < totalBallsGenerated) {
-			generateBall ();
-			Invoke("initiateBall",ballGenerateTimeInSeconds);
+	private IEnumerator initiateBall(){
+		while (invokedBalls < totalBallsGenerated)
+		{
+			GenerateBall();
+			invokedBalls++;
+			yield return new WaitForSeconds(ballGenerateTimeInSeconds);
 		}
 	}
 
-	public void generateBall(){
+	public void GenerateBall(){
 		Vector3 instantiatePosition = transform.position;
 		instantiatePosition.y += Random.Range(0.0f, 10.0f);
 		instantiatePosition.x += Random.Range(-4.0f, 4.0f);
 		GameObject ball = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
 		BallScript ballScript = ball.GetComponent<BallScript> ();
 		int ballIndex = Random.Range (0, gameManager.sprites.Length);
-		ballScript.initiate (ballIndex, gameManager.sprites[ballIndex]);
+		ballScript.Initiate (ballIndex, gameManager.sprites[ballIndex]);
 		ball.transform.parent = transform;
 	}
 
-	public List<BallScript> getBalls(){
-		List<BallScript> balls = new List<BallScript> ();
-		for (int i = 0; i < transform.childCount; i++) {
-			BallScript ball = transform.GetChild (i).GetComponent<BallScript>();
-			balls.Add (ball);
-		}
-		return balls;
+	public IEnumerator GetBalls(){
+		return transform.GetEnumerator ();
 	}
-	
-	// Update is called once per frame
-
 }

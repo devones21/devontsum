@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 public class GameManagerScript : MonoBehaviour {
 	public Text readyText;
@@ -18,12 +19,12 @@ public class GameManagerScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		score = 0;
-		addScore (0);
+		AddScore (0);
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (isAllBallNotMoving ()) {
+		if (IsAllBallNotMoving ()) {
 			readyText.color = readyColor;
 			hintButton.interactable = true;
 		} else {
@@ -32,29 +33,27 @@ public class GameManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void refreshAllBalls(){
-		List<BallScript> balls = ballGenerator.getBalls ();
-		foreach(BallScript ball in balls){
-			ball.refresh ();
+	public void RefreshAllBalls(){
+		IEnumerator enumerator = ballGenerator.transform.GetEnumerator ();
+		while (enumerator.MoveNext ()) {
+			Transform ballTransform = enumerator.Current as Transform;
+			ballTransform.GetComponent<BallScript> ().Refresh ();
 		}
 	}
 
-	public bool isAllBallNotMoving(){
-		bool result = true;
-		List<BallScript> balls = ballGenerator.getBalls ();
-		foreach(BallScript ball in balls){
-			Rigidbody2D rigidbody2D = ball.gameObject.GetComponent<Rigidbody2D> ();
-			if(rigidbody2D != null){
-				if (Mathf.Abs (rigidbody2D.velocity.y) > 1 || Mathf.Abs (rigidbody2D.velocity.x) > 0.1 ) {
-					result = false;
-					return result;
-				}
+	public bool IsAllBallNotMoving(){
+		IEnumerator enumerator = ballGenerator.transform.GetEnumerator ();
+		while(enumerator.MoveNext ()){
+			Transform child = enumerator.Current as Transform;
+			BallScript ball = child.GetComponent<BallScript>();
+			if(ball.IsMoving()){
+				return false;
 			}
-		}
-		return result;
+		};
+		return true;
 	}
 
-	string generateZeroes(int number, int length){
+	string GenerateZeroes(int number, int length){
 		string result = "";
 		if (number.ToString ().Length < length) {
 			for (int i = 0; i < length - number.ToString ().Length; i++) {
@@ -66,11 +65,9 @@ public class GameManagerScript : MonoBehaviour {
 		return result;
 	}
 
-	public void addScore(int scoreAdded){
+	public void AddScore(int scoreAdded){
 		score += scoreAdded;
-		string scoreString = generateZeroes (score, scoreLength);
+		string scoreString = GenerateZeroes (score, scoreLength);
 		scoreText.text = scoreString;
 	}
-
-
 }

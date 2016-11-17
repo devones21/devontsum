@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class LineManagerScript : MonoBehaviour {
 	public GameManagerScript gameManager;
+	public LayerMask ballLayer;
 	LineRenderer lineRenderer;
 	List<BallScript> chainedBalls;
 	int chosenIndex = -1;
@@ -14,15 +16,15 @@ public class LineManagerScript : MonoBehaviour {
 
 	void Update() {
 		if (Input.GetMouseButtonDown(0)) {
-			if (gameManager.isAllBallNotMoving ()) {
-				BallScript ball = getBallTouched ();
+			if (gameManager.IsAllBallNotMoving ()) {
+				BallScript ball = GetBallTouched ();
 				if (ball != null){
-					chosenIndex = ball.getIndex ();
-					addBall (ball);
-					if (getChainableBalls (ball, chainedBalls, true).Count > 0) {
-						
+					chosenIndex = ball.Index;
+					AddBall (ball);
+					if (GetChainableBalls (ball, chainedBalls, true).Count > 0) {
 //						List<BallScript> bestPathBalls = recursiveFunctionToGetBestPath (ball, null, null);
 //						Debug.Log (bestPathBalls.Count);
+//						drawLines (bestPathBalls);
 //						foreach(BallScript selectableBall in bestPathBalls){
 //
 //							selectableBall.switchAnimationToSelectable ();
@@ -34,78 +36,84 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			} 
 			else {
-				restart ();
+				Restart ();
 			}
 		}
 		else if (Input.GetMouseButton (0)) {
-			if (gameManager.isAllBallNotMoving () && chosenIndex != -1) {
-				BallScript ball = getBallTouched ();
+			if (gameManager.IsAllBallNotMoving () && chosenIndex != -1) {
+				BallScript ball = GetBallTouched ();
 				if (ball != null
-					&& ball.getIndex() == chosenIndex
+					&& ball.Index == chosenIndex
 					&& !chainedBalls.Contains(ball)
-					&& isThisBallChainable(chainedBalls, chainedBalls[chainedBalls.Count - 1], ball)) {
+					&& IsThisBallChainable(chainedBalls, chainedBalls[chainedBalls.Count - 1], ball)) {
 
 					if (chainedBalls.Count > 0) {
 						BallScript lastBall = chainedBalls [chainedBalls.Count - 1];
-						foreach (BallScript chainableBall in getChainableBalls(lastBall, chainedBalls, false)) {
+						List<BallScript> chainableBalls = GetChainableBalls (lastBall, chainedBalls, false);
+						IEnumerator enumerator = chainableBalls.GetEnumerator ();
+						while (enumerator.MoveNext ()) {
+							BallScript chainableBall = enumerator.Current as BallScript;
 							if (chainableBall.GetInstanceID () != ball.GetInstanceID ()) {
-								chainableBall.switchAnimationToIdle ();
+								chainableBall.Idle ();
 							}
 						}
 					}
 
-					addBall (ball);
+					AddBall (ball);
 
-					if (getChainableBalls (ball, chainedBalls, true).Count == 0) {
+					if (GetChainableBalls (ball, chainedBalls, true).Count == 0) {
 						//retrieveBalls ();
 					}
 				}
 			} 
 			else {
-				restart ();
+				Restart ();
 			}
 		}
 		else if (Input.GetMouseButtonUp (0)) {
-			if (gameManager.isAllBallNotMoving () && chosenIndex != -1) {
+			if (gameManager.IsAllBallNotMoving () && chosenIndex != -1) {
 
 				if (chainedBalls.Count >= 0) {
-					retrieveBalls ();
+					RetrieveBalls ();
 				} else {
-					restart ();
+					Restart ();
 				}
 			}
 		}
 		//Debug.Log ("BallTouchedCount: " + ballScriptList.Count);
 	}
 
-	public void retrieveBalls(){
-		float retrievedLength = 0;
+	public void RetrieveBalls(){
 		int score = 100;
 		int lastScore = score;
-		foreach(BallScript retrievedBalls in chainedBalls){
-			retrievedLength = retrievedBalls.retrieved(score);
-			gameManager.addScore (score);
-			gameManager.ballGenerator.generateBall ();
-			score += lastScore;
-			lastScore = score - lastScore;
+		IEnumerator enumerator = chainedBalls.GetEnumerator ();
+		while(enumerator.MoveNext()){
+			BallScript ballScript = enumerator.Current as BallScript;
+			if (ballScript != null) {
+				ballScript.Retrieved (score);
+				gameManager.AddScore (score);
+				gameManager.ballGenerator.GenerateBall ();
+				score += lastScore;
+				lastScore = score - lastScore;
+			}
 		}
-		restart ();
+		Restart ();
 	}
 
-	public void restart(){
-		gameManager.refreshAllBalls ();
+	public void Restart(){
+		gameManager.RefreshAllBalls ();
 		chosenIndex = -1;
 		chainedBalls.Clear ();
-		drawLines (chainedBalls);
+		DrawLines (chainedBalls);
 	}
 
-	public void addBall(BallScript ball){
+	public void AddBall(BallScript ball){
 		chainedBalls.Add (ball);
-		ball.switchAnimationToSelected ();
-		drawLines (chainedBalls);
+		ball.Selected ();
+		DrawLines (chainedBalls);
 	}
 
-	public void drawLines(List<BallScript> list){
+	public void DrawLines(List<BallScript> list){
 		if (list.Count > 1) {
 			Vector3[] ballPositions = new Vector3[list.Count];
 			for (int i = 0; i < list.Count; i++) {
@@ -120,6 +128,7 @@ public class LineManagerScript : MonoBehaviour {
 		}
 	}
 
+	//Source: http://gamedev.stackexchange.com/questions/93823/how-to-make-line-renderer-lines-stay-flat
 	Vector3[] Generate_Points(Vector3[] keyPoints, int segments=100){
 		Vector3[] Points = new Vector3[(keyPoints.Length - 1) * segments + keyPoints.Length];
 		for(int i = 1; i < keyPoints.Length;i++){
@@ -137,7 +146,7 @@ public class LineManagerScript : MonoBehaviour {
 		return Points;
 	}
 
-	BallScript getBallTouched(){
+	BallScript GetBallTouched(){
 		BallScript ballScript = null;
 		Vector2 mousePosition = Camera.main.ScreenToWorldPoint (Input.mousePosition);
 		Collider2D hitCollider = Physics2D.OverlapPoint (mousePosition);
@@ -148,23 +157,25 @@ public class LineManagerScript : MonoBehaviour {
 		return ballScript;
 	}
 
-	List<BallScript> getChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
+	List<BallScript> GetChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
 		List<BallScript> result = new List<BallScript> ();
-		foreach(BallScript checkedBall in gameManager.ballGenerator.getBalls()){
+		IEnumerator enumerator = gameManager.ballGenerator.GetBalls ();
+		while (enumerator.MoveNext ()) {
+			Transform checkedBallTransform = enumerator.Current as Transform;
+			BallScript checkedBall = checkedBallTransform.GetComponent<BallScript> ();
 			if (!list.Contains(checkedBall) 
-				&& checkedBall.getIndex() == ball.getIndex() 
-				&& isThisBallChainable (list, ball, checkedBall)) {
+				&& checkedBall.Index == ball.Index 
+				&& IsThisBallChainable (list, ball, checkedBall)) {
 				result.Add (checkedBall);
-				if(isSelectable)checkedBall.switchAnimationToSelectable ();
+				if(isSelectable)checkedBall.Selectable ();
 			}
 		}
 		return result;
 	}
 
-	bool isThisBallChainable(List<BallScript> list, BallScript originBall, BallScript targetBall){
+	bool IsThisBallChainable(List<BallScript> list, BallScript originBall, BallScript targetBall){
 		if (list.Contains (targetBall))
 			return false;
-		bool result = false;
 		float distance = Vector2.Distance (originBall.transform.position, targetBall.transform.position);
 		//Debug.DrawRay (originBall.transform.position, targetBall.transform.position - originBall.transform.position, Color.white, distance);
 		//Vector2 angle = Vector2.Angle(originBall.transform.position, targetBall.transform.position);
@@ -178,23 +189,23 @@ public class LineManagerScript : MonoBehaviour {
 		Vector2 bottomTargetPosition = new Vector2(targetBall.transform.position.x, targetBall.transform.position.y) - raycastDistance2D;
 
 		//RaycastHit2D[] hits = Physics2D.RaycastAll(originBall.transform.position, targetBall.transform.position - originBall.transform.position, distance);
-		RaycastHit2D[] topHits = Physics2D.RaycastAll(topPosition, topTargetPosition - topPosition, distance);
-		RaycastHit2D[] bottomHits = Physics2D.RaycastAll(bottomPosition, bottomTargetPosition - bottomPosition, distance);
+		RaycastHit2D[] topHits = Physics2D.RaycastAll(topPosition, topTargetPosition - topPosition, distance, ballLayer);
+		RaycastHit2D[] bottomHits = Physics2D.RaycastAll(bottomPosition, bottomTargetPosition - bottomPosition, distance, ballLayer);
 		if (topHits.Length == 2 && bottomHits.Length == 2) {
 			RaycastHit2D hit = topHits [1];
 			if (hit.collider != null) {
 				BallScript hittedBall = hit.collider.gameObject.GetComponent<BallScript> ();
 				if (hittedBall != null 
 					&& hittedBall.gameObject.GetInstanceID () == targetBall.gameObject.GetInstanceID ()
-					&& originBall.getIndex() == targetBall.getIndex()) {
-					result = true;
+					&& originBall.Index == targetBall.Index) {
+					return true;
 				}
 			}
 		}
-		return result;
+		return false;
 	}
 
-	List<BallScript> recursiveFunctionToGetBestPath(BallScript ball, List<BallScript> result, List<BallScript> bestResult){
+	List<BallScript> RecursiveFunctionToGetBestPath(BallScript ball, List<BallScript> result, List<BallScript> bestResult){
 		if (result == null) {
 			result = new List<BallScript> ();
 		}
@@ -205,28 +216,39 @@ public class LineManagerScript : MonoBehaviour {
 		if (result.Count > bestResult.Count) {
 			bestResult = result;
 		}
-		List<BallScript> chainableBalls = getChainableBalls (ball, result, false);
+		List<BallScript> chainableBalls = GetChainableBalls (ball, result, false);
 		if (chainableBalls.Count > 0) {
-			foreach (BallScript chainableBall in chainableBalls) {
-				recursiveFunctionToGetBestPath (chainableBall, result, bestResult);
+
+			IEnumerator enumerator = chainableBalls.GetEnumerator();
+			while (enumerator.MoveNext ()) {
+				BallScript chainableBall = enumerator.Current as BallScript;
+				RecursiveFunctionToGetBestPath (chainableBall, result, bestResult);
 			}
 		}
 		return bestResult;
 	}
 
-	public void showHint(){
-		if (gameManager.isAllBallNotMoving ()) {
+	public void ShowHint(){
+		if (gameManager.IsAllBallNotMoving ()) {
 			List<BallScript> bestHint = new List<BallScript> ();
-			foreach (BallScript ball in gameManager.ballGenerator.getBalls()) {
-				List<BallScript> hint = recursiveFunctionToGetBestPath (ball, null, null);
+
+			IEnumerator enumerator = gameManager.ballGenerator.GetBalls ();
+			while (enumerator.MoveNext ()) {
+				Transform ballTransform = enumerator.Current as Transform;
+				BallScript ball = ballTransform.GetComponent<BallScript> ();
+
+				List<BallScript> hint = RecursiveFunctionToGetBestPath (ball, null, null);
 				if (hint.Count > bestHint.Count) {
 					bestHint = hint;
 				}
 			}
 
-			drawLines (bestHint);
-			foreach (BallScript ball in bestHint) {
-				ball.hint ();
+			DrawLines (bestHint);
+
+			IEnumerator enumeratorBestHint = bestHint.GetEnumerator();
+			while (enumeratorBestHint.MoveNext ()) {
+				BallScript ball = enumeratorBestHint.Current as BallScript;
+				ball.Hint ();
 			}
 		}
 	}

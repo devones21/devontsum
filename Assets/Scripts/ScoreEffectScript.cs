@@ -14,19 +14,19 @@ public class ScoreEffectScript : MonoBehaviour {
 		transform.Translate(Vector3.up * Time.deltaTime, Camera.main.transform);
 	}
 
-	public void setScore(int score){
+	public void SetScore(int score){
 		TextMesh textMesh = GetComponent<TextMesh> ();
 		textMesh.text = score.ToString ();
-		if (score > 12800) {
+		if (score > 10000) {
 			textMesh.color = colors [4];
 			textMesh.characterSize = 2.0f;
-		} else if (score > 3200) {
+		} else if (score > 3000) {
 			textMesh.color = colors [3];
 			textMesh.characterSize = 1.75f;
-		} else if (score > 800) {
+		} else if (score > 1000) {
 			textMesh.color = colors [2];
 			textMesh.characterSize = 1.5f;
-		} else if (score > 200) {
+		} else if (score > 500) {
 			textMesh.color = colors [1];
 			textMesh.characterSize = 1.25f;
 		} else {

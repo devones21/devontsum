@@ -6,67 +6,101 @@ public class BallScript : MonoBehaviour {
 	int index;
 	Sprite sprite;
 	Animator animator;
+	Rigidbody2D theRigidbody;
+
+	static class Constants
+	{
+		public const string isSelected = "isSelected";
+		public const string isSelectable  = "isSelectable"; 
+		public const string isRetrieved  = "isRetrieved"; 
+	}
 
 	// Use this for initialization
 	void Awake () {
+		theRigidbody = GetComponent<Rigidbody2D> ();
 		animator = GetComponent<Animator> ();
 	}
 
-	public void switchAnimationToSelected(){
-		animator.SetBool ("isSelectable", false);
-		animator.SetBool ("isSelected", true);
+	public void Selected(){
+		SwitchAnimationToSelected ();
 	}
 
-	public void switchAnimationToRetrieved(){
-		animator.SetTrigger ("isRetrieved");
+	public void Retrieved(){
+		SwitchAnimationToRetrieved ();
 	}
 
-	public void switchAnimationToSelectable(){
-		animator.SetBool ("isSelected", false);
-		animator.SetBool ("isSelectable", true);
+	public void Selectable(){
+		SwitchAnimationToSelectable ();
 	}
 
-	public void switchAnimationToIdle(){
-		animator.SetBool ("isSelected", false);
-		animator.SetBool ("isSelectable", false);
+	public void Idle(){
+		SwitchAnimationToIdle ();
 	}
 
-	public void hint(){
-		animator.SetBool ("isSelected", false);
-		animator.SetBool ("isSelectable", true);
+	public void SwitchAnimationToSelected(){
+		animator.SetBool (Constants.isSelectable, false);
+		animator.SetBool (Constants.isSelected, true);
+	}
+
+	public void SwitchAnimationToRetrieved(){
+		animator.SetTrigger (Constants.isRetrieved);
+	}
+
+	public void SwitchAnimationToSelectable(){
+		animator.SetBool (Constants.isSelected, false);
+		animator.SetBool (Constants.isSelectable, true);
+	}
+
+	public void SwitchAnimationToIdle(){
+		animator.SetBool (Constants.isSelected, false);
+		animator.SetBool (Constants.isSelectable, false);
+	}
+
+	public void Hint(){
+		SwitchAnimationToSelectable ();
 		Invoke ("switchAnimationToIdle", 1.0f);
 		
 	}
 
-	public void initiate(int index, Sprite sprite){
+	public void Initiate(int index, Sprite sprite){
 		this.index = index;
 		this.sprite = sprite;
-		refresh ();
+		Refresh ();
 	}
 
-	public void refresh(){
+	public void Refresh(){
 		SpriteRenderer ballSpriteRenderer = transform.GetComponentsInChildren<SpriteRenderer>()[0];
 		ballSpriteRenderer.sprite = sprite;
-		switchAnimationToIdle ();
+		Idle ();
 	}
 
-	public float retrieved(int score){
-		switchAnimationToRetrieved ();
+	public bool IsMoving(){
+		if (theRigidbody != null) {
+			if (Mathf.Abs (theRigidbody.velocity.y) > 1 || Mathf.Abs (theRigidbody.velocity.x) > 0.1f) {
+				return true;
+			} else
+				return false;
+		} else {
+			return false;
+		}
+	}
+
+	public float Retrieved(int score){
+		Retrieved ();
 		Vector3 position = transform.position;
 		position.z -= 1;
 		Transform scoreText = Instantiate (scorePrefab, position, Quaternion.identity) as Transform;
-		scoreText.GetComponent<ScoreEffectScript> ().setScore (score);
+		scoreText.GetComponent<ScoreEffectScript> ().SetScore (score);
 		Destroy (scoreText.gameObject, animator.GetCurrentAnimatorStateInfo (0).length);
 		Destroy (gameObject, animator.GetCurrentAnimatorStateInfo(0).length);
 		return animator.GetCurrentAnimatorStateInfo (0).length;
 	}
 
-	public int getIndex(){
-		return this.index;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
+	public int Index
+	{
+		get
+		{
+			return index;
+		}
 	}
 }
