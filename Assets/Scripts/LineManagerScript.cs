@@ -18,8 +18,9 @@ public class LineManagerScript : MonoBehaviour {
 				BallScript ball = getBallTouched ();
 				if (ball != null){
 					chosenIndex = ball.getIndex ();
+					addBall (ball);
 					if (getChainableBalls (ball, chainedBalls, true).Count > 0) {
-						addBall (ball);
+						
 //						List<BallScript> bestPathBalls = recursiveFunctionToGetBestPath (ball, null, null);
 //						Debug.Log (bestPathBalls.Count);
 //						foreach(BallScript selectableBall in bestPathBalls){
@@ -33,7 +34,7 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			} 
 			else {
-				//restart ();
+				restart ();
 			}
 		}
 		else if (Input.GetMouseButton (0)) {
@@ -42,7 +43,7 @@ public class LineManagerScript : MonoBehaviour {
 				if (ball != null
 					&& ball.getIndex() == chosenIndex
 					&& !chainedBalls.Contains(ball)
-					&& isThisBallValid(chainedBalls[chainedBalls.Count - 1], ball)) {
+					&& isThisBallChainable(chainedBalls, chainedBalls[chainedBalls.Count - 1], ball)) {
 
 					if (chainedBalls.Count > 0) {
 						BallScript lastBall = chainedBalls [chainedBalls.Count - 1];
@@ -61,13 +62,17 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			} 
 			else {
-				//restart ();
+				restart ();
 			}
 		}
 		else if (Input.GetMouseButtonUp (0)) {
 			if (gameManager.isAllBallNotMoving () && chosenIndex != -1) {
-				gameManager.refreshAllBalls ();
-				retrieveBalls ();
+
+				if (chainedBalls.Count >= 0) {
+					retrieveBalls ();
+				} else {
+					restart ();
+				}
 			}
 		}
 		//Debug.Log ("BallTouchedCount: " + ballScriptList.Count);
@@ -76,13 +81,15 @@ public class LineManagerScript : MonoBehaviour {
 	public void retrieveBalls(){
 		float retrievedLength = 0;
 		int score = 100;
+		int lastScore = score;
 		foreach(BallScript retrievedBalls in chainedBalls){
 			retrievedLength = retrievedBalls.retrieved(score);
 			gameManager.addScore (score);
 			gameManager.ballGenerator.generateBall ();
-			score *= 2;
+			score += lastScore;
+			lastScore = score - lastScore;
 		}
-		Invoke ("restart", retrievedLength);
+		restart ();
 	}
 
 	public void restart(){
@@ -120,7 +127,7 @@ public class LineManagerScript : MonoBehaviour {
 			for (int j = 1;j<=segments;j++){
 				float x = keyPoints [i - 1].x;
 				float y = keyPoints [i - 1].y;
-				float z = 0;//keyPoints [i - 1].z;
+				float z = 0;
 				float dx = (keyPoints [i].x - keyPoints [i - 1].x)/segments;
 				float dy = (keyPoints [i].y - keyPoints [i - 1].y)/segments;
 				Points [(i - 1) * segments + j + i - 1] = new Vector3 (x+dx*j,y+dy*j,z);
@@ -144,7 +151,9 @@ public class LineManagerScript : MonoBehaviour {
 	List<BallScript> getChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
 		List<BallScript> result = new List<BallScript> ();
 		foreach(BallScript checkedBall in gameManager.ballGenerator.getBalls()){
-			if (!list.Contains(checkedBall) && checkedBall.getIndex() == ball.getIndex() && isThisBallValid (ball, checkedBall)) {
+			if (!list.Contains(checkedBall) 
+				&& checkedBall.getIndex() == ball.getIndex() 
+				&& isThisBallChainable (list, ball, checkedBall)) {
 				result.Add (checkedBall);
 				if(isSelectable)checkedBall.switchAnimationToSelectable ();
 			}
@@ -152,15 +161,27 @@ public class LineManagerScript : MonoBehaviour {
 		return result;
 	}
 
-	bool isThisBallValid(BallScript originBall, BallScript targetBall){
-		if (chainedBalls.Contains (targetBall))
+	bool isThisBallChainable(List<BallScript> list, BallScript originBall, BallScript targetBall){
+		if (list.Contains (targetBall))
 			return false;
 		bool result = false;
 		float distance = Vector2.Distance (originBall.transform.position, targetBall.transform.position);
-		//Debug.DrawRay (originBall.transform.position, targetBall.transform.position - originBall.transform.position, Color.black, distance);
-		RaycastHit2D[] hits = Physics2D.RaycastAll(originBall.transform.position, targetBall.transform.position - originBall.transform.position, distance);
-		if (hits.Length == 2) {
-			RaycastHit2D hit = hits [1];
+		//Debug.DrawRay (originBall.transform.position, targetBall.transform.position - originBall.transform.position, Color.white, distance);
+		//Vector2 angle = Vector2.Angle(originBall.transform.position, targetBall.transform.position);
+		Quaternion angle = Quaternion.FromToRotation(originBall.transform.position, targetBall.transform.position);
+		//angle.eulerAngles = new Vector3 (0, 0, 90);
+		Vector3 raycastDistance = angle * new Vector2 (0, gameManager.raycastWidth / 2);
+		Vector2 raycastDistance2D = new Vector2 (raycastDistance.x, raycastDistance.y);
+		Vector2 topPosition = new Vector2(originBall.transform.position.x, originBall.transform.position.y) + raycastDistance2D;
+		Vector2 bottomPosition = new Vector2(originBall.transform.position.x, originBall.transform.position.y) - raycastDistance2D;
+		Vector2 topTargetPosition = new Vector2(targetBall.transform.position.x, targetBall.transform.position.y) + raycastDistance2D;
+		Vector2 bottomTargetPosition = new Vector2(targetBall.transform.position.x, targetBall.transform.position.y) - raycastDistance2D;
+
+		//RaycastHit2D[] hits = Physics2D.RaycastAll(originBall.transform.position, targetBall.transform.position - originBall.transform.position, distance);
+		RaycastHit2D[] topHits = Physics2D.RaycastAll(topPosition, topTargetPosition - topPosition, distance);
+		RaycastHit2D[] bottomHits = Physics2D.RaycastAll(bottomPosition, bottomTargetPosition - bottomPosition, distance);
+		if (topHits.Length == 2 && bottomHits.Length == 2) {
+			RaycastHit2D hit = topHits [1];
 			if (hit.collider != null) {
 				BallScript hittedBall = hit.collider.gameObject.GetComponent<BallScript> ();
 				if (hittedBall != null 
@@ -196,7 +217,6 @@ public class LineManagerScript : MonoBehaviour {
 	public void showHint(){
 		if (gameManager.isAllBallNotMoving ()) {
 			List<BallScript> bestHint = new List<BallScript> ();
-			;
 			foreach (BallScript ball in gameManager.ballGenerator.getBalls()) {
 				List<BallScript> hint = recursiveFunctionToGetBestPath (ball, null, null);
 				if (hint.Count > bestHint.Count) {
@@ -204,7 +224,7 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			}
 
-			//drawLines (bestHint);
+			drawLines (bestHint);
 			foreach (BallScript ball in bestHint) {
 				ball.hint ();
 			}

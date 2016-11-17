@@ -12,6 +12,7 @@ public class GameManagerScript : MonoBehaviour {
 	public Sprite touchableBallSprite;
 	public BallGeneratorScript ballGenerator;
 	public int scoreLength = 5;
+	public float raycastWidth = 1.0f;
 	int score = 0;
 
 	// Use this for initialization
