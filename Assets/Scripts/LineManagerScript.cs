@@ -90,7 +90,6 @@ public class LineManagerScript : MonoBehaviour {
 			if (ballScript != null) {
 				ballScript.RetrievedAddScore (score);
 				gameManager.AddScore (score);
-				gameManager.ballGenerator.GenerateBall ();
 				score += lastScore;
 				lastScore = score - lastScore;
 			}
@@ -159,10 +158,9 @@ public class LineManagerScript : MonoBehaviour {
 
 	List<BallScript> GetChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
 		List<BallScript> result = new List<BallScript> ();
-		IEnumerator enumerator = gameManager.ballGenerator.GetBalls ();
+		IEnumerator enumerator = gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).GetEnumerator();
 		while (enumerator.MoveNext ()) {
-			Transform checkedBallTransform = enumerator.Current as Transform;
-			BallScript checkedBall = checkedBallTransform.GetComponent<BallScript> ();
+			BallScript checkedBall = enumerator.Current as BallScript;
 			if (!list.Contains(checkedBall) 
 				&& ball.Index == checkedBall.Index
 				&& IsThisBallChainable (list, ball, checkedBall)) {
@@ -251,7 +249,7 @@ public class LineManagerScript : MonoBehaviour {
 		if (gameManager.IsAllBallNotMoving ()) {
 			List<BallScript> bestHint = new List<BallScript> ();
 
-			IEnumerator enumerator = gameManager.ballGenerator.GetBalls ();
+			IEnumerator enumerator = gameManager.ballGenerator.GetAllBalls ();
 			while (enumerator.MoveNext ()) {
 				Transform ballTransform = enumerator.Current as Transform;
 				BallScript ball = ballTransform.GetComponent<BallScript> ();

@@ -14,6 +14,7 @@ public class BallScript : MonoBehaviour {
 		public const string isSelected = "isSelected";
 		public const string isSelectable  = "isSelectable"; 
 		public const string isRetrieved  = "isRetrieved"; 
+		public const string isForceIdle  = "isForceIdle"; 
 	}
 
 
@@ -28,7 +29,7 @@ public class BallScript : MonoBehaviour {
 
 	public void Retrieved(){
 		SwitchAnimationToRetrieved ();
-		Destroy (gameObject, animator.GetCurrentAnimatorStateInfo(0).length);
+		StartCoroutine(Destroy (animator.GetCurrentAnimatorStateInfo(0).length));
 	}
 
 	public void Selectable(){
@@ -37,6 +38,10 @@ public class BallScript : MonoBehaviour {
 
 	public void Idle(){
 		SwitchAnimationToIdle ();
+	}
+
+	public void ForceIdle(){
+		animator.SetTrigger (Constants.isForceIdle);
 	}
 
 	public void SwitchAnimationToSelected(){
@@ -94,7 +99,7 @@ public class BallScript : MonoBehaviour {
 		Transform scoreText = Instantiate (scorePrefab, position, Quaternion.identity) as Transform;
 		scoreText.GetComponent<ScoreEffectScript> ().SetScore (score);
 		Destroy (scoreText.gameObject, animator.GetCurrentAnimatorStateInfo (0).length);
-		Destroy (gameObject, animator.GetCurrentAnimatorStateInfo(0).length);
+		StartCoroutine(Destroy (animator.GetCurrentAnimatorStateInfo(0).length));
 		return animator.GetCurrentAnimatorStateInfo (0).length;
 	}
 
@@ -116,4 +121,31 @@ public class BallScript : MonoBehaviour {
 			id = value;
 		}
 	}
+
+	private IEnumerator Destroy(float delayTime){
+		yield return new WaitForSeconds(delayTime);
+		GameObject ballGeneratorObject = GameObject.Find ("BallGenerator");
+		GameObject gameManagerObject = GameObject.Find ("GameManager");
+		if (ballGeneratorObject != null && gameManagerObject  != null) {
+			Debug.Log ("Destroyed");
+			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
+			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
+			ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
+
+			if (gameManager.IsPlaying) {
+				Debug.Log ("Recycled");
+				ballGenerator.RecycleBall (this);
+			}
+		}
+		//gameObject.SetActive (false);
+	}
+
+
+//	void OnDestroy() {
+//		GameObject ballGeneratorObject = GameObject.Find ("BallGenerator");
+//		if (ballGeneratorObject != null) {
+//			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
+//			ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
+//		}
+//	}
 }

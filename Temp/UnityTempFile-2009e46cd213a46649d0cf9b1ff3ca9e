@@ -87,10 +87,11 @@
 -define:UNITY_TEAM_LICENSE
 'Assets/Scripts/BallGeneratorScript.cs'
 'Assets/Scripts/BallScript.cs'
+'Assets/Scripts/CombineChildrenScript.cs'
 'Assets/Scripts/CountdownScript.cs'
 'Assets/Scripts/GameManagerScript.cs'
 'Assets/Scripts/LineManagerScript.cs'
-'Assets/Scripts/ReadyCountdownScript.cs'
 'Assets/Scripts/ScoreEffectScript.cs'
+'Assets/Scripts/StartCountdownScrpt.cs'
 -r:'/Applications/Unity/Unity.app/Contents/Mono/lib/mono/unity/System.Runtime.Serialization.dll'
 -r:'/Applications/Unity/Unity.app/Contents/Mono/lib/mono/unity/System.Xml.Linq.dll'

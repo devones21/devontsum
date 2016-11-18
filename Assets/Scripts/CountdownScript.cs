@@ -6,6 +6,7 @@ public class CountdownScript : MonoBehaviour {
 	public float time;
 	public GameManagerScript gameManager;
 	float timeLeft;
+	int lastTime = 0;
 	Text countdownText;
 
 	// Use this for initialization
@@ -21,19 +22,22 @@ public class CountdownScript : MonoBehaviour {
 	void Update () {
 		if (gameManager.IsPlaying) {
 			timeLeft -= Time.deltaTime;
-			countdownText.text = convertSecondToTimeFormat ((int)timeLeft);
-			if ((int)timeLeft > 10) {
-				countdownText.color = Color.black;
-			} else {
-				countdownText.color = Color.red;
-				if ((int)timeLeft == 0) {
-					gameManager.GameOver ();
+			if ((int)timeLeft != lastTime) {
+				countdownText.text = convertSecondToTimeFormat ((int)timeLeft);
+				if ((int)timeLeft > 10) {
+					countdownText.color = Color.black;
+				} else {
+					countdownText.color = Color.red;
+					if ((int)timeLeft == 0) {
+						gameManager.GameOver ();
+					}
 				}
 			}
 		}
 	}
 
 	string convertSecondToTimeFormat(int second){
+		lastTime = second;
 		int minute = second / 60;
 		second = second % 60; 
 		string minuteText = minute.ToString("00");

@@ -85,7 +85,7 @@ public class GameManagerScript : MonoBehaviour {
 	}
 
 	public bool IsAllBallNotMoving(){
-		IEnumerator enumerator = ballGenerator.transform.GetEnumerator ();
+		IEnumerator enumerator = ballGenerator.GetAllBalls();
 		while(enumerator.MoveNext ()){
 			Transform child = enumerator.Current as Transform;
 			BallScript ball = child.GetComponent<BallScript>();
