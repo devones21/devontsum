@@ -21,17 +21,21 @@ public class CountdownScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (gameManager.IsPlaying) {
-			timeLeft -= Time.deltaTime;
-			if ((int)timeLeft != lastTime) {
-				countdownText.text = convertSecondToTimeFormat ((int)timeLeft);
-				if ((int)timeLeft > 10) {
-					countdownText.color = Color.black;
-				} else {
-					countdownText.color = Color.red;
-					if ((int)timeLeft == 0) {
-						gameManager.GameOver ();
+			if (gameManager.IsAllBallNotMoving ()) {
+				timeLeft -= Time.deltaTime;
+				if ((int)timeLeft != lastTime) {
+					countdownText.text = convertSecondToTimeFormat ((int)timeLeft);
+					if ((int)timeLeft > 10) {
+						countdownText.color = Color.black;
+					} else {
+						countdownText.color = Color.red;
+						if ((int)timeLeft == 0) {
+							gameManager.GameOver ();
+						}
 					}
 				}
+			} else {
+				countdownText.color = Color.yellow;
 			}
 		}
 	}

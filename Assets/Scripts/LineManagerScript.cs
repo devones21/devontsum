@@ -36,6 +36,7 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			} 
 			else {
+				Debug.Log ("Ball is moving");
 				Restart ();
 			}
 		}
@@ -158,14 +159,22 @@ public class LineManagerScript : MonoBehaviour {
 
 	List<BallScript> GetChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
 		List<BallScript> result = new List<BallScript> ();
+		if (gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).Count == 0) {
+			
+			Debug.Log ("Empty");
+		}
 		IEnumerator enumerator = gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).GetEnumerator();
 		while (enumerator.MoveNext ()) {
 			BallScript checkedBall = enumerator.Current as BallScript;
 			if (!list.Contains(checkedBall) 
 				&& ball.Index == checkedBall.Index
 				&& IsThisBallChainable (list, ball, checkedBall)) {
+				Debug.Log (checkedBall.gameObject.name + " is selectable");
 				result.Add (checkedBall);
-				if(isSelectable)checkedBall.Selectable ();
+				if (isSelectable) {
+					Debug.Log (checkedBall.gameObject.name + " is selectable animation started");
+					checkedBall.Selectable ();
+				}
 			}
 		}
 		return result;

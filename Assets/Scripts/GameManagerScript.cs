@@ -14,7 +14,6 @@ public class GameManagerScript : MonoBehaviour {
 	public Color readyColor;
 	public Color notReadyColor;
 	public Sprite[] sprites;
-	public Sprite touchableBallSprite;
 	public BallGeneratorScript ballGenerator;
 	public LineManagerScript lineManagerScript;
 	public int scoreLength = 5;
@@ -70,8 +69,8 @@ public class GameManagerScript : MonoBehaviour {
 		IsPlaying = false;
 		Debug.Log (score);
 		resultScoreText.text = score.ToString ("000000");
+		lineManagerScript.Restart ();
 		lineManagerScript.enabled = false;
-		lineManagerScript.DrawLines (new List<BallScript> ());
 		ballGenerator.RetrieveAllBalls ();
 		resultPanel.gameObject.SetActive (true);
 	}

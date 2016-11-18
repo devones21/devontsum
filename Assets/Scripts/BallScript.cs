@@ -127,13 +127,11 @@ public class BallScript : MonoBehaviour {
 		GameObject ballGeneratorObject = GameObject.Find ("BallGenerator");
 		GameObject gameManagerObject = GameObject.Find ("GameManager");
 		if (ballGeneratorObject != null && gameManagerObject  != null) {
-			Debug.Log ("Destroyed");
 			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
 			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
 			ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
 
 			if (gameManager.IsPlaying) {
-				Debug.Log ("Recycled");
 				ballGenerator.RecycleBall (this);
 			}
 		}

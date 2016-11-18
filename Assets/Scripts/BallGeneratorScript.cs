@@ -16,8 +16,17 @@ public class BallGeneratorScript : MonoBehaviour {
 	}
 
 	public void Restart(){
-		IEnumerator initBalls = InitiateBall ();
-		StartCoroutine (initBalls);
+		if (transform.childCount == 0) {
+			IEnumerator initBalls = InitiateBall ();
+			StartCoroutine (initBalls);
+		} else {
+			IEnumerator enumerator = GetAllBalls ();
+			while (enumerator.MoveNext ()) {
+				Transform child = enumerator.Current as Transform;
+				BallScript ball = child.GetComponent<BallScript> ();
+				StartCoroutine(RecycleBallWithDelay (ball));
+			}
+		}
 	}
 
 	public void RetrieveAllBalls(){
@@ -38,19 +47,31 @@ public class BallGeneratorScript : MonoBehaviour {
 		}
 	}
 
+	private IEnumerator RecycleBallWithDelay(BallScript ball){
+		RecycleBall (ball);
+		yield return new WaitForSeconds(ballGenerateTimeInSeconds);
+	}
+
 	public void RecycleBall(BallScript ball){
-		if (ball != null ){
+		if (ball != null) {
 			Vector3 instantiatePosition = transform.position;
-			instantiatePosition.y += Random.Range(0.0f, 10.0f);
-			instantiatePosition.x += Random.Range(-4.0f, 4.0f);
+			Rigidbody2D ballRigidbody = ball.GetComponent<Rigidbody2D> ();
+			ballRigidbody.velocity = new Vector2 (0, 0);
+			ballRigidbody.angularVelocity = 0.0f;
+
+			instantiatePosition.y += Random.Range (0.0f, 10.0f);
+			instantiatePosition.x += Random.Range (-4.0f, 4.0f);
 			ball.transform.position = instantiatePosition;
 			int ballIndex = Random.Range (0, gameManager.sprites.Length);
-			if (!ballDictionary.ContainsKey(ballIndex)) {
+			if (!ballDictionary.ContainsKey (ballIndex)) {
 				ballDictionary.Add (ballIndex, new List<BallScript> ());
 			}
-			ball.Initiate (ballIndex, gameManager.sprites[ballIndex]);
+			ball.Initiate (ballIndex, gameManager.sprites [ballIndex]);
+			ballDictionary [ballIndex].Add (ball);
 			ball.ForceIdle ();
 			ball.Refresh ();
+		} else {
+			Debug.Log ("Ball is null");
 		}
 	}
 
@@ -58,15 +79,15 @@ public class BallGeneratorScript : MonoBehaviour {
 		Vector3 instantiatePosition = transform.position;
 		instantiatePosition.y += Random.Range(0.0f, 10.0f);
 		instantiatePosition.x += Random.Range(-4.0f, 4.0f);
-		GameObject ball = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
-		BallScript ballScript = ball.GetComponent<BallScript> ();
-		ballScript.Id = invokedBalls;
+		GameObject ballObject = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
+		BallScript ball = ballObject.GetComponent<BallScript> ();
+		ball.Id = invokedBalls;
 		int ballIndex = Random.Range (0, gameManager.sprites.Length);
 		if (!ballDictionary.ContainsKey(ballIndex)) {
 			ballDictionary.Add (ballIndex, new List<BallScript> ());
 		}
-		ballScript.Initiate (ballIndex, gameManager.sprites[ballIndex]);
-		ballDictionary [ballIndex].Add (ballScript);
+		ball.Initiate (ballIndex, gameManager.sprites[ballIndex]);
+		ballDictionary [ballIndex].Add (ball);
 		ball.transform.parent = transform;
 		invokedBalls++;
 	}
