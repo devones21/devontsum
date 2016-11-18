@@ -72,15 +72,13 @@ public class LineManagerScript : MonoBehaviour {
 		}
 		else if (Input.GetMouseButtonUp (0)) {
 			if (gameManager.IsAllBallNotMoving () && chosenIndex != -1) {
-
-				if (chainedBalls.Count >= 0) {
+				if (chainedBalls.Count >= 3) {
 					RetrieveBalls ();
 				} else {
 					Restart ();
 				}
 			}
 		}
-		//Debug.Log ("BallTouchedCount: " + ballScriptList.Count);
 	}
 
 	public void RetrieveBalls(){
@@ -90,7 +88,7 @@ public class LineManagerScript : MonoBehaviour {
 		while(enumerator.MoveNext()){
 			BallScript ballScript = enumerator.Current as BallScript;
 			if (ballScript != null) {
-				ballScript.Retrieved (score);
+				ballScript.RetrievedAddScore (score);
 				gameManager.AddScore (score);
 				gameManager.ballGenerator.GenerateBall ();
 				score += lastScore;
@@ -103,8 +101,10 @@ public class LineManagerScript : MonoBehaviour {
 	public void Restart(){
 		gameManager.RefreshAllBalls ();
 		chosenIndex = -1;
-		chainedBalls.Clear ();
-		DrawLines (chainedBalls);
+		if (chainedBalls != null) {
+			chainedBalls.Clear ();
+			DrawLines (chainedBalls);
+		}
 	}
 
 	public void AddBall(BallScript ball){
@@ -164,7 +164,7 @@ public class LineManagerScript : MonoBehaviour {
 			Transform checkedBallTransform = enumerator.Current as Transform;
 			BallScript checkedBall = checkedBallTransform.GetComponent<BallScript> ();
 			if (!list.Contains(checkedBall) 
-				&& checkedBall.Index == ball.Index 
+				&& ball.Index == checkedBall.Index
 				&& IsThisBallChainable (list, ball, checkedBall)) {
 				result.Add (checkedBall);
 				if(isSelectable)checkedBall.Selectable ();
@@ -177,10 +177,7 @@ public class LineManagerScript : MonoBehaviour {
 		if (list.Contains (targetBall))
 			return false;
 		float distance = Vector2.Distance (originBall.transform.position, targetBall.transform.position);
-		//Debug.DrawRay (originBall.transform.position, targetBall.transform.position - originBall.transform.position, Color.white, distance);
-		//Vector2 angle = Vector2.Angle(originBall.transform.position, targetBall.transform.position);
 		Quaternion angle = Quaternion.FromToRotation(originBall.transform.position, targetBall.transform.position);
-		//angle.eulerAngles = new Vector3 (0, 0, 90);
 		Vector3 raycastDistance = angle * new Vector2 (0, gameManager.raycastWidth / 2);
 		Vector2 raycastDistance2D = new Vector2 (raycastDistance.x, raycastDistance.y);
 		Vector2 topPosition = new Vector2(originBall.transform.position.x, originBall.transform.position.y) + raycastDistance2D;
@@ -188,20 +185,32 @@ public class LineManagerScript : MonoBehaviour {
 		Vector2 topTargetPosition = new Vector2(targetBall.transform.position.x, targetBall.transform.position.y) + raycastDistance2D;
 		Vector2 bottomTargetPosition = new Vector2(targetBall.transform.position.x, targetBall.transform.position.y) - raycastDistance2D;
 
-		//RaycastHit2D[] hits = Physics2D.RaycastAll(originBall.transform.position, targetBall.transform.position - originBall.transform.position, distance);
 		RaycastHit2D[] topHits = Physics2D.RaycastAll(topPosition, topTargetPosition - topPosition, distance, ballLayer);
 		RaycastHit2D[] bottomHits = Physics2D.RaycastAll(bottomPosition, bottomTargetPosition - bottomPosition, distance, ballLayer);
 		if (topHits.Length == 2 && bottomHits.Length == 2) {
 			RaycastHit2D hit = topHits [1];
 			if (hit.collider != null) {
 				BallScript hittedBall = hit.collider.gameObject.GetComponent<BallScript> ();
+				//Debug.Log (targetBall.Id + "(Target Id) - " + hittedBall.Id + "(Hitted Id)");
 				if (hittedBall != null 
-					&& hittedBall.gameObject.GetInstanceID () == targetBall.gameObject.GetInstanceID ()
+					&& hittedBall.Id == targetBall.Id
 					&& originBall.Index == targetBall.Index) {
+					Debug.DrawRay (originBall.transform.position, targetBall.transform.position - originBall.transform.position, Color.white, distance);
 					return true;
 				}
 			}
 		}
+//		RaycastHit2D topHits = Physics2D.Linecast(topPosition, topTargetPosition, ballLayer);
+//		RaycastHit2D bottomHits = Physics2D.Linecast(bottomPosition, bottomTargetPosition, ballLayer);
+//		if (topHits.collider.gameObject == targetBall.gameObject  && topHits.collider != null && bottomHits.collider != null && topHits.collider == bottomHits.collider) {
+//			BallScript hittedBall = topHits.collider.gameObject.GetComponent<BallScript> ();
+//			Debug.Log (targetBall.Id + "(Target Id) - " + hittedBall.Id + "(Hitted Id)");
+//			if (hittedBall != null 
+//				&& originBall.Index == targetBall.Index) {
+//				Debug.DrawRay (originBall.transform.position, targetBall.transform.position - originBall.transform.position, Color.white, distance);
+//				return true;
+//			}
+//		}
 		return false;
 	}
 
@@ -218,7 +227,6 @@ public class LineManagerScript : MonoBehaviour {
 		}
 		List<BallScript> chainableBalls = GetChainableBalls (ball, result, false);
 		if (chainableBalls.Count > 0) {
-
 			IEnumerator enumerator = chainableBalls.GetEnumerator();
 			while (enumerator.MoveNext ()) {
 				BallScript chainableBall = enumerator.Current as BallScript;
@@ -227,6 +235,17 @@ public class LineManagerScript : MonoBehaviour {
 		}
 		return bestResult;
 	}
+
+//	List<BallScript> getBestPath(BallScript ball){
+//		List<BallScript> result = new List<BallScript> ();
+//		List<BallScript> chainableBalls = GetChainableBalls (ball, result, false);
+//		if (chainedBalls.Count > 0) {
+//			BallScript currentBall = ball;
+//			result.Add (currentBall);
+//			foreach (BallScript chainableBall in chainableBalls) {
+//			}
+//		}
+//	}
 
 	public void ShowHint(){
 		if (gameManager.IsAllBallNotMoving ()) {
@@ -243,7 +262,7 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			}
 
-			DrawLines (bestHint);
+			//DrawLines (bestHint);
 
 			IEnumerator enumeratorBestHint = bestHint.GetEnumerator();
 			while (enumeratorBestHint.MoveNext ()) {

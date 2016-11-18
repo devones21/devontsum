@@ -4,6 +4,7 @@ using System.Collections;
 public class BallScript : MonoBehaviour {
 	public Transform scorePrefab;
 	int index;
+	public int id;
 	Sprite sprite;
 	Animator animator;
 	Rigidbody2D theRigidbody;
@@ -15,7 +16,7 @@ public class BallScript : MonoBehaviour {
 		public const string isRetrieved  = "isRetrieved"; 
 	}
 
-	// Use this for initialization
+
 	void Awake () {
 		theRigidbody = GetComponent<Rigidbody2D> ();
 		animator = GetComponent<Animator> ();
@@ -27,6 +28,7 @@ public class BallScript : MonoBehaviour {
 
 	public void Retrieved(){
 		SwitchAnimationToRetrieved ();
+		Destroy (gameObject, animator.GetCurrentAnimatorStateInfo(0).length);
 	}
 
 	public void Selectable(){
@@ -58,7 +60,7 @@ public class BallScript : MonoBehaviour {
 
 	public void Hint(){
 		SwitchAnimationToSelectable ();
-		Invoke ("switchAnimationToIdle", 1.0f);
+		Invoke ("SwitchAnimationToIdle", 1.0f);
 		
 	}
 
@@ -85,8 +87,8 @@ public class BallScript : MonoBehaviour {
 		}
 	}
 
-	public float Retrieved(int score){
-		Retrieved ();
+	public float RetrievedAddScore(int score){
+		SwitchAnimationToRetrieved ();
 		Vector3 position = transform.position;
 		position.z -= 1;
 		Transform scoreText = Instantiate (scorePrefab, position, Quaternion.identity) as Transform;
@@ -101,6 +103,17 @@ public class BallScript : MonoBehaviour {
 		get
 		{
 			return index;
+		}
+	}
+
+	public int Id
+	{
+		get
+		{
+			return id;
+		}
+		set {
+			id = value;
 		}
 	}
 }

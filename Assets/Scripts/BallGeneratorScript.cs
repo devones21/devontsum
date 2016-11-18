@@ -9,17 +9,26 @@ public class BallGeneratorScript : MonoBehaviour {
 	public Transform ballPrefab;
 	int invokedBalls = 0;
 	Color[] colors;
-	// Use this for initialization
-	void Start () {
+
+	public void Restart(){
 		IEnumerator initBalls = initiateBall ();
 		StartCoroutine (initBalls);
+	}
+
+	public void RetrieveAllBalls(){
+		IEnumerator enumerator = GetBalls ();
+		while (enumerator.MoveNext ()) {
+			Transform child = enumerator.Current as Transform;
+			BallScript ball = child.GetComponent<BallScript> ();
+			ball.Retrieved ();
+		}
+		invokedBalls = 0;
 	}
 
 	private IEnumerator initiateBall(){
 		while (invokedBalls < totalBallsGenerated)
 		{
 			GenerateBall();
-			invokedBalls++;
 			yield return new WaitForSeconds(ballGenerateTimeInSeconds);
 		}
 	}
@@ -30,9 +39,11 @@ public class BallGeneratorScript : MonoBehaviour {
 		instantiatePosition.x += Random.Range(-4.0f, 4.0f);
 		GameObject ball = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
 		BallScript ballScript = ball.GetComponent<BallScript> ();
+		ballScript.Id = invokedBalls;
 		int ballIndex = Random.Range (0, gameManager.sprites.Length);
 		ballScript.Initiate (ballIndex, gameManager.sprites[ballIndex]);
 		ball.transform.parent = transform;
+		invokedBalls++;
 	}
 
 	public IEnumerator GetBalls(){

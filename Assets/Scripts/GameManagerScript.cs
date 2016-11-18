@@ -6,31 +6,74 @@ using System.Collections;
 public class GameManagerScript : MonoBehaviour {
 	public Text readyText;
 	public Text scoreText;
+	public Text resultScoreText;
+	public CountdownScript countdown;
+	public StartCountdownScrpt startCountdown;
+	public Image resultPanel;
 	public Button hintButton;
 	public Color readyColor;
 	public Color notReadyColor;
 	public Sprite[] sprites;
 	public Sprite touchableBallSprite;
 	public BallGeneratorScript ballGenerator;
+	public LineManagerScript lineManagerScript;
 	public int scoreLength = 5;
 	public float raycastWidth = 1.0f;
+	bool isPlaying;
 	int score = 0;
 
 	// Use this for initialization
 	void Start () {
-		score = 0;
-		AddScore (0);
+		StartCountdown ();
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
-		if (IsAllBallNotMoving ()) {
-			readyText.color = readyColor;
-			hintButton.interactable = true;
+		if (IsPlaying) {
+			if (IsAllBallNotMoving ()) {
+				readyText.color = readyColor;
+				hintButton.interactable = true;
+			} else {
+				readyText.color = notReadyColor;
+				hintButton.interactable = false;
+			}
 		} else {
 			readyText.color = notReadyColor;
 			hintButton.interactable = false;
 		}
+	}
+
+	private IEnumerator RestartWithDelay(float delayTime){
+		yield return new WaitForSeconds(delayTime);
+		Restart ();
+	}
+
+	public void StartCountdown(){
+		IsPlaying = false;
+		score = 0;
+		AddScore (0);
+		resultPanel.gameObject.SetActive (false);
+		startCountdown.Restart ();
+		startCountdown.gameObject.SetActive (true);
+	}
+
+	public void Restart(){
+		IsPlaying = true;
+		lineManagerScript.enabled = true;
+		lineManagerScript.Restart ();
+		ballGenerator.Restart ();
+		countdown.Restart ();
+		startCountdown.gameObject.SetActive (false);
+	}
+
+	public void GameOver(){
+		IsPlaying = false;
+		Debug.Log (score);
+		resultScoreText.text = score.ToString ("000000");
+		lineManagerScript.enabled = false;
+		lineManagerScript.DrawLines (new List<BallScript> ());
+		ballGenerator.RetrieveAllBalls ();
+		resultPanel.gameObject.SetActive (true);
 	}
 
 	public void RefreshAllBalls(){
@@ -53,21 +96,18 @@ public class GameManagerScript : MonoBehaviour {
 		return true;
 	}
 
-	string GenerateZeroes(int number, int length){
-		string result = "";
-		if (number.ToString ().Length < length) {
-			for (int i = 0; i < length - number.ToString ().Length; i++) {
-				result += "0";
-			}
-			result += number.ToString ();
-		} else
-			result = number.ToString ();
-		return result;
-	}
-
 	public void AddScore(int scoreAdded){
 		score += scoreAdded;
-		string scoreString = GenerateZeroes (score, scoreLength);
+		string scoreString = score.ToString ("000000");
 		scoreText.text = scoreString;
+	}
+
+	public bool IsPlaying{
+		get{
+			return isPlaying;
+		}
+		set{
+			isPlaying = value;
+		}
 	}
 }
