@@ -92,6 +92,7 @@ public class LineManagerScript : MonoBehaviour {
 			chainedBalls.Clear ();
 			DrawLines (chainedBalls);
 		}
+		gameManager.ballGenerator.EnableBallRigibodies ();
 	}
 
 	//Chain a ball

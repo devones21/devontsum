@@ -27,8 +27,9 @@ public class GameManagerScript : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		if (IsPlaying) {
+		if (IsPlaying && ballGenerator.InvokedBalls == ballGenerator.totalBallsGenerated) {
 			if (IsAllBallNotMoving ()) {
+				ballGenerator.DisableBallRigibodies ();
 				readyText.color = readyColor;
 				hintButton.interactable = true;
 			} else {

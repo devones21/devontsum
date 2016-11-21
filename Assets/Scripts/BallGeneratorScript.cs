@@ -7,6 +7,7 @@ public class BallGeneratorScript : MonoBehaviour {
 	public int totalBallsGenerated; //Total number of balls that is goinf to be generated
 	public float ballGenerateTimeInSeconds; //Delay time when ball is generated each time
 	public Transform ballPrefab; //Prefab of balls
+	public bool isRecycling = false;
 	Dictionary<int, List<BallScript>> ballDictionary; //Balls shall be putted here
 	int invokedBalls = 0; //Number of balls invoked
 
@@ -58,9 +59,10 @@ public class BallGeneratorScript : MonoBehaviour {
 	//Recycle a ball without delay
 	public void RecycleBall(BallScript ball){
 		if (ball != null) {
+			ball.EnableRigidbody ();
 			Vector3 instantiatePosition = transform.position;
 			Rigidbody2D ballRigidbody = ball.GetComponent<Rigidbody2D> ();
-			ballRigidbody.velocity = new Vector2 (0, 0);
+			ballRigidbody.velocity = new Vector2 (0, 0.5f);
 			ballRigidbody.angularVelocity = 0.0f;
 
 			instantiatePosition.y += Random.Range (0.0f, 10.0f);
@@ -73,6 +75,7 @@ public class BallGeneratorScript : MonoBehaviour {
 			ball.Initiate (ballIndex, gameManager.sprites [ballIndex]);
 			ballDictionary [ballIndex].Add (ball);
 			ball.ForceIdle ();
+			isRecycling = false;
 		} else {
 			Debug.Log ("Ball is null");
 		}
@@ -107,5 +110,35 @@ public class BallGeneratorScript : MonoBehaviour {
 			return ballDictionary [index];
 		} else
 			return null;
+	}
+
+	public void DisableBallRigibodies(){
+		//if (isRecycling == false) {
+//			IEnumerator enumerator = GetAllBalls ();
+//			while (enumerator.MoveNext ()) {
+//				Transform ballTransform = enumerator.Current as Transform;
+//				BallScript ball = ballTransform.GetComponent<BallScript> ();
+//				ball.DisableRigidbody ();
+//			}
+		//}
+	}
+
+	public void EnableBallRigibodies(){
+//		isRecycling = true;
+//		IEnumerator enumerator = GetAllBalls ();
+//		while (enumerator.MoveNext ()) {
+//			Transform ballTransform = enumerator.Current as Transform;
+//			BallScript ball = ballTransform.GetComponent<BallScript> ();
+//			ball.EnableRigidbody ();
+//		}
+	}
+
+	public int InvokedBalls{
+		get{
+			return invokedBalls;
+		}
+		set{
+			invokedBalls = value;
+		}
 	}
 }

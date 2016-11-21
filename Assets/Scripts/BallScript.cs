@@ -122,8 +122,8 @@ public class BallScript : MonoBehaviour {
 
 	//Check if baal is moving
 	public bool IsMoving(){
-		if (theRigidbody != null) {
-			if (Mathf.Abs (theRigidbody.velocity.y) > 1 || Mathf.Abs (theRigidbody.velocity.x) > 1f) {
+		if (theRigidbody != null && GetComponent<Rigidbody2D>() != null) {
+			if (Mathf.Abs (theRigidbody.velocity.y) > 1 || Mathf.Abs (theRigidbody.velocity.x) > 1) {
 				return true;
 			} else
 				return false;
@@ -158,5 +158,14 @@ public class BallScript : MonoBehaviour {
 				ballGenerator.RecycleBall (this);
 			}
 		}
+	}
+
+	public void DisableRigidbody(){
+		theRigidbody.isKinematic = true;
+	}
+
+
+	public void EnableRigidbody(){
+		theRigidbody.isKinematic = false;
 	}
 }
