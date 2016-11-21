@@ -15,7 +15,7 @@ public class CountdownScript : MonoBehaviour {
 	}
 
 	public void Restart(){
-		timeLeft = time;
+		timeLeft = time + 1;
 	}
 	
 	// Update is called once per frame

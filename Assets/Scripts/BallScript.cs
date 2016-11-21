@@ -83,7 +83,7 @@ public class BallScript : MonoBehaviour {
 
 	public bool IsMoving(){
 		if (theRigidbody != null) {
-			if (Mathf.Abs (theRigidbody.velocity.y) > 1 || Mathf.Abs (theRigidbody.velocity.x) > 0.1f) {
+			if (Mathf.Abs (theRigidbody.velocity.y) > 1 || Mathf.Abs (theRigidbody.velocity.x) > 1f) {
 				return true;
 			} else
 				return false;
@@ -135,15 +135,5 @@ public class BallScript : MonoBehaviour {
 				ballGenerator.RecycleBall (this);
 			}
 		}
-		//gameObject.SetActive (false);
 	}
-
-
-//	void OnDestroy() {
-//		GameObject ballGeneratorObject = GameObject.Find ("BallGenerator");
-//		if (ballGeneratorObject != null) {
-//			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
-//			ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
-//		}
-//	}
 }

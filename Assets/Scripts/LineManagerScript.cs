@@ -184,7 +184,14 @@ public class LineManagerScript : MonoBehaviour {
 		if (list.Contains (targetBall))
 			return false;
 		float distance = Vector2.Distance (originBall.transform.position, targetBall.transform.position);
-		Quaternion angle = Quaternion.FromToRotation(originBall.transform.position, targetBall.transform.position);
+
+
+		//Source: http://answers.unity3d.com/questions/510361/rotate-gameobject-towards-another-gameobject-in-a.html
+		float difX = targetBall.gameObject.transform.position.x - originBall.transform.position.x;
+		float difY = targetBall.gameObject.transform.position.y - originBall.transform.position.y;
+
+		float angleFloat = Mathf.Atan2(difY,difX);
+		Quaternion angle = Quaternion.Euler (0,0, Mathf.Rad2Deg * angleFloat);
 		Vector3 raycastDistance = angle * new Vector2 (0, gameManager.raycastWidth / 2);
 		Vector2 raycastDistance2D = new Vector2 (raycastDistance.x, raycastDistance.y);
 		Vector2 topPosition = new Vector2(originBall.transform.position.x, originBall.transform.position.y) + raycastDistance2D;
@@ -202,7 +209,10 @@ public class LineManagerScript : MonoBehaviour {
 				if (hittedBall != null 
 					&& hittedBall.Id == targetBall.Id
 					&& originBall.Index == targetBall.Index) {
-					Debug.DrawRay (originBall.transform.position, targetBall.transform.position - originBall.transform.position, Color.white, distance);
+					Debug.DrawRay (topPosition, topTargetPosition - topPosition, Color.white, distance);
+					Debug.DrawRay (bottomPosition, bottomTargetPosition - bottomPosition, Color.white, distance);
+//					Debug.DrawRay (rightPosition, rightTargetPosition - rightPosition, Color.white, distance);
+//					Debug.DrawRay (leftPosition, leftTargetPosition - leftPosition, Color.white, distance);
 					return true;
 				}
 			}
