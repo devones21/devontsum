@@ -14,6 +14,7 @@ public class CountdownScript : MonoBehaviour {
 		countdownText = GetComponent<Text> ();
 	}
 
+	//Restart countdown
 	public void Restart(){
 		timeLeft = time + 1;
 	}
@@ -40,6 +41,7 @@ public class CountdownScript : MonoBehaviour {
 		}
 	}
 
+	//Generate text for countdown from second
 	string convertSecondToTimeFormat(int second){
 		lastTime = second;
 		int minute = second / 60;

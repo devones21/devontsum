@@ -9,100 +9,6 @@ public class BallScript : MonoBehaviour {
 	Animator animator;
 	Rigidbody2D theRigidbody;
 
-	static class Constants
-	{
-		public const string isSelected = "isSelected";
-		public const string isSelectable  = "isSelectable"; 
-		public const string isRetrieved  = "isRetrieved"; 
-		public const string isForceIdle  = "isForceIdle"; 
-	}
-
-
-	void Awake () {
-		theRigidbody = GetComponent<Rigidbody2D> ();
-		animator = GetComponent<Animator> ();
-	}
-
-	public void Selected(){
-		SwitchAnimationToSelected ();
-	}
-
-	public void Retrieved(){
-		SwitchAnimationToRetrieved ();
-		StartCoroutine(Destroy (animator.GetCurrentAnimatorStateInfo(0).length));
-	}
-
-	public void Selectable(){
-		SwitchAnimationToSelectable ();
-	}
-
-	public void Idle(){
-		SwitchAnimationToIdle ();
-	}
-
-	public void ForceIdle(){
-		animator.SetTrigger (Constants.isForceIdle);
-	}
-
-	public void SwitchAnimationToSelected(){
-		animator.SetBool (Constants.isSelectable, false);
-		animator.SetBool (Constants.isSelected, true);
-	}
-
-	public void SwitchAnimationToRetrieved(){
-		animator.SetTrigger (Constants.isRetrieved);
-	}
-
-	public void SwitchAnimationToSelectable(){
-		animator.SetBool (Constants.isSelected, false);
-		animator.SetBool (Constants.isSelectable, true);
-	}
-
-	public void SwitchAnimationToIdle(){
-		animator.SetBool (Constants.isSelected, false);
-		animator.SetBool (Constants.isSelectable, false);
-	}
-
-	public void Hint(){
-		SwitchAnimationToSelectable ();
-		Invoke ("SwitchAnimationToIdle", 1.0f);
-		
-	}
-
-	public void Initiate(int index, Sprite sprite){
-		this.index = index;
-		this.sprite = sprite;
-		Refresh ();
-	}
-
-	public void Refresh(){
-		SpriteRenderer ballSpriteRenderer = transform.GetComponentsInChildren<SpriteRenderer>()[0];
-		ballSpriteRenderer.sprite = sprite;
-		Idle ();
-	}
-
-	public bool IsMoving(){
-		if (theRigidbody != null) {
-			if (Mathf.Abs (theRigidbody.velocity.y) > 1 || Mathf.Abs (theRigidbody.velocity.x) > 1f) {
-				return true;
-			} else
-				return false;
-		} else {
-			return false;
-		}
-	}
-
-	public float RetrievedAddScore(int score){
-		SwitchAnimationToRetrieved ();
-		Vector3 position = transform.position;
-		position.z -= 1;
-		Transform scoreText = Instantiate (scorePrefab, position, Quaternion.identity) as Transform;
-		scoreText.GetComponent<ScoreEffectScript> ().SetScore (score);
-		Destroy (scoreText.gameObject, animator.GetCurrentAnimatorStateInfo (0).length);
-		StartCoroutine(Destroy (animator.GetCurrentAnimatorStateInfo(0).length));
-		return animator.GetCurrentAnimatorStateInfo (0).length;
-	}
-
 	public int Index
 	{
 		get
@@ -122,7 +28,124 @@ public class BallScript : MonoBehaviour {
 		}
 	}
 
-	private IEnumerator Destroy(float delayTime){
+	//Constants for animations
+	static class Constants
+	{
+		public const string isSelected = "isSelected";
+		public const string isSelectable  = "isSelectable"; 
+		public const string isRetrieved  = "isRetrieved"; 
+		public const string isForceIdle  = "isForceIdle"; 
+	}
+		
+	void Start () {
+		theRigidbody = GetComponent<Rigidbody2D> ();
+		animator = GetComponent<Animator> ();
+	}
+
+	//Enter Chained condtion
+	public void Selected(){
+		SwitchAnimationToSelected ();
+	}
+
+	//Retrieved 
+	public void Retrieved(){
+		SwitchAnimationToRetrieved ();
+		StartCoroutine(Recycle (animator.GetCurrentAnimatorStateInfo(0).length));
+	}
+
+	//Enter Chainable condition
+	public void Selectable(){
+		SwitchAnimationToSelectable ();
+	}
+
+	//Return to idle condition
+	public void Idle(){
+		SwitchAnimationToIdle ();
+	}
+
+	//Force ball to enter idle immediately
+	public void ForceIdle(){
+		animator.SetTrigger (Constants.isForceIdle);
+	}
+
+	//Switch animation to selected
+	public void SwitchAnimationToSelected(){
+		if (animator == null) {
+			animator = GetComponent<Animator> ();
+		}
+		animator.SetBool (Constants.isSelectable, false);
+		animator.SetBool (Constants.isSelected, true);
+	}
+
+	//Switch animation to retrieved
+	public void SwitchAnimationToRetrieved(){
+		if (animator == null) {
+			animator = GetComponent<Animator> ();
+		}
+		animator.SetTrigger (Constants.isRetrieved);
+	}
+
+	//Switch animation to selectable
+	public void SwitchAnimationToSelectable(){
+		if (animator == null) {
+			animator = GetComponent<Animator> ();
+		}
+		animator.SetBool (Constants.isSelected, false);
+		animator.SetBool (Constants.isSelectable, true);
+	}
+
+	//Switch animation to idle
+	public void SwitchAnimationToIdle(){
+		if (animator == null) {
+			animator = GetComponent<Animator> ();
+		}
+		animator.SetBool (Constants.isSelected, false);
+		animator.SetBool (Constants.isSelectable, false);
+	}
+
+	//Temporarily enter chainable animation as hint
+	public void Hint(){
+		SwitchAnimationToSelectable ();
+		Invoke ("SwitchAnimationToIdle", 1.0f);
+		
+	}
+
+	//Initiate/Restart ball
+	public void Initiate(int index, Sprite sprite){
+		this.index = index;
+		this.sprite = sprite;
+
+		SpriteRenderer ballSpriteRenderer = transform.GetComponentsInChildren<SpriteRenderer>()[0];
+		if(ballSpriteRenderer != null) ballSpriteRenderer.sprite = sprite;
+		Idle ();
+	}
+
+	//Check if baal is moving
+	public bool IsMoving(){
+		if (theRigidbody != null) {
+			if (Mathf.Abs (theRigidbody.velocity.y) > 1 || Mathf.Abs (theRigidbody.velocity.x) > 1f) {
+				return true;
+			} else
+				return false;
+		} else {
+			return false;
+		}
+	}
+
+	//Retrieve and add score
+	public float RetrievedAddScore(int score){
+		SwitchAnimationToRetrieved ();
+		Vector3 position = transform.position;
+		position.z -= 1;
+		Transform scoreText = Instantiate (scorePrefab, position, Quaternion.identity) as Transform;
+		scoreText.GetComponent<ScoreEffectScript> ().SetScore (score);
+		Destroy (scoreText.gameObject, animator.GetCurrentAnimatorStateInfo (0).length);
+		StartCoroutine(Recycle (animator.GetCurrentAnimatorStateInfo(0).length));
+		return animator.GetCurrentAnimatorStateInfo (0).length;
+	}
+
+	//Recycle the ball
+	private IEnumerator Recycle(float delayTime){
 		yield return new WaitForSeconds(delayTime);
 		GameObject ballGeneratorObject = GameObject.Find ("BallGenerator");
 		GameObject gameManagerObject = GameObject.Find ("GameManager");

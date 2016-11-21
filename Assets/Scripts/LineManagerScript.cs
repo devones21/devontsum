@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Collections;
 
 public class LineManagerScript : MonoBehaviour {
-	public GameManagerScript gameManager;
-	public LayerMask ballLayer;
-	LineRenderer lineRenderer;
-	List<BallScript> chainedBalls;
-	int chosenIndex = -1;
+	public GameManagerScript gameManager; //GameManager to get settings
+	public LayerMask ballLayer; //Layer of the balls
+	LineRenderer lineRenderer; //Line Renderer that we will use to render line
+	List<BallScript> chainedBalls; //Currently chained balls
+	List<BallScript> bestPathBalls; //Possible balls that can be chained from current chained ball
+	int chosenIndex = -1; //Currently chosen balls index
 
 	void Start(){
 		lineRenderer = GetComponent<LineRenderer> ();
 		chainedBalls = new List<BallScript> ();
+		bestPathBalls = new List<BallScript> ();
 	}
 
 	void Update() {
@@ -21,22 +23,12 @@ public class LineManagerScript : MonoBehaviour {
 				if (ball != null){
 					chosenIndex = ball.Index;
 					AddBall (ball);
-					if (GetChainableBalls (ball, chainedBalls, true).Count > 0) {
-//						List<BallScript> bestPathBalls = recursiveFunctionToGetBestPath (ball, null, null);
-//						Debug.Log (bestPathBalls.Count);
-//						drawLines (bestPathBalls);
-//						foreach(BallScript selectableBall in bestPathBalls){
-//
-//							selectableBall.switchAnimationToSelectable ();
-//						}
-					} 
 				} 
 				else {
 					//gameManager.refreshAllBalls ();
 				}
 			} 
 			else {
-				Debug.Log ("Ball is moving");
 				Restart ();
 			}
 		}
@@ -47,24 +39,14 @@ public class LineManagerScript : MonoBehaviour {
 					&& ball.Index == chosenIndex
 					&& !chainedBalls.Contains(ball)
 					&& IsThisBallChainable(chainedBalls, chainedBalls[chainedBalls.Count - 1], ball)) {
-
-					if (chainedBalls.Count > 0) {
-						BallScript lastBall = chainedBalls [chainedBalls.Count - 1];
-						List<BallScript> chainableBalls = GetChainableBalls (lastBall, chainedBalls, false);
-						IEnumerator enumerator = chainableBalls.GetEnumerator ();
-						while (enumerator.MoveNext ()) {
-							BallScript chainableBall = enumerator.Current as BallScript;
-							if (chainableBall.GetInstanceID () != ball.GetInstanceID ()) {
-								chainableBall.Idle ();
-							}
+					IEnumerator enumerator = bestPathBalls.GetEnumerator ();
+					while (enumerator.MoveNext ()) {
+						BallScript chainableBall = enumerator.Current as BallScript;
+						if (chainableBall.GetInstanceID () != ball.GetInstanceID () && !chainedBalls.Contains(chainableBall)) {
+							chainableBall.Idle ();
 						}
 					}
-
 					AddBall (ball);
-
-					if (GetChainableBalls (ball, chainedBalls, true).Count == 0) {
-						//retrieveBalls ();
-					}
 				}
 			} 
 			else {
@@ -80,8 +62,12 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			}
 		}
+		if (Input.GetMouseButtonDown (1)) {
+			Restart ();
+		}
 	}
 
+	//Retreive currently chained balls
 	public void RetrieveBalls(){
 		int score = 100;
 		int lastScore = score;
@@ -98,6 +84,7 @@ public class LineManagerScript : MonoBehaviour {
 		Restart ();
 	}
 
+	//Cancel last action
 	public void Restart(){
 		gameManager.RefreshAllBalls ();
 		chosenIndex = -1;
@@ -107,12 +94,20 @@ public class LineManagerScript : MonoBehaviour {
 		}
 	}
 
+	//Chain a ball
 	public void AddBall(BallScript ball){
+		if (GetChainableBalls (ball, chainedBalls, false).Count > 0) {
+			bestPathBalls = RecursiveFunctionToGetBestPath (ball, new List<BallScript>(chainedBalls), null);
+			foreach(BallScript selectableBall in bestPathBalls){
+				if(ball != selectableBall)selectableBall.Selectable ();
+			}
+		}
 		chainedBalls.Add (ball);
 		ball.Selected ();
 		DrawLines (chainedBalls);
 	}
 
+	//Draw lines to a group of balls
 	public void DrawLines(List<BallScript> list){
 		if (list.Count > 1) {
 			Vector3[] ballPositions = new Vector3[list.Count];
@@ -128,6 +123,7 @@ public class LineManagerScript : MonoBehaviour {
 		}
 	}
 
+	//Flatten the lines so it wont look folded everytime it moves to another direction
 	//Source: http://gamedev.stackexchange.com/questions/93823/how-to-make-line-renderer-lines-stay-flat
 	Vector3[] Generate_Points(Vector3[] keyPoints, int segments=100){
 		Vector3[] Points = new Vector3[(keyPoints.Length - 1) * segments + keyPoints.Length];
@@ -146,6 +142,7 @@ public class LineManagerScript : MonoBehaviour {
 		return Points;
 	}
 
+	//Return the ball that is touched by player
 	BallScript GetBallTouched(){
 		BallScript ballScript = null;
 		Vector2 mousePosition = Camera.main.ScreenToWorldPoint (Input.mousePosition);
@@ -157,22 +154,17 @@ public class LineManagerScript : MonoBehaviour {
 		return ballScript;
 	}
 
+	//Get balls that can be chained from a ball position
 	List<BallScript> GetChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
 		List<BallScript> result = new List<BallScript> ();
-		if (gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).Count == 0) {
-			
-			Debug.Log ("Empty");
-		}
 		IEnumerator enumerator = gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).GetEnumerator();
 		while (enumerator.MoveNext ()) {
 			BallScript checkedBall = enumerator.Current as BallScript;
 			if (!list.Contains(checkedBall) 
 				&& ball.Index == checkedBall.Index
 				&& IsThisBallChainable (list, ball, checkedBall)) {
-				Debug.Log (checkedBall.gameObject.name + " is selectable");
 				result.Add (checkedBall);
 				if (isSelectable) {
-					Debug.Log (checkedBall.gameObject.name + " is selectable animation started");
 					checkedBall.Selectable ();
 				}
 			}
@@ -180,11 +172,11 @@ public class LineManagerScript : MonoBehaviour {
 		return result;
 	}
 
+	//Check if this ball(targetBall) can be chained to currently chained ball(originBall)
 	bool IsThisBallChainable(List<BallScript> list, BallScript originBall, BallScript targetBall){
 		if (list.Contains (targetBall))
 			return false;
 		float distance = Vector2.Distance (originBall.transform.position, targetBall.transform.position);
-
 
 		//Source: http://answers.unity3d.com/questions/510361/rotate-gameobject-towards-another-gameobject-in-a.html
 		float difX = targetBall.gameObject.transform.position.x - originBall.transform.position.x;
@@ -205,32 +197,19 @@ public class LineManagerScript : MonoBehaviour {
 			RaycastHit2D hit = topHits [1];
 			if (hit.collider != null) {
 				BallScript hittedBall = hit.collider.gameObject.GetComponent<BallScript> ();
-				//Debug.Log (targetBall.Id + "(Target Id) - " + hittedBall.Id + "(Hitted Id)");
 				if (hittedBall != null 
 					&& hittedBall.Id == targetBall.Id
 					&& originBall.Index == targetBall.Index) {
 					Debug.DrawRay (topPosition, topTargetPosition - topPosition, Color.white, distance);
 					Debug.DrawRay (bottomPosition, bottomTargetPosition - bottomPosition, Color.white, distance);
-//					Debug.DrawRay (rightPosition, rightTargetPosition - rightPosition, Color.white, distance);
-//					Debug.DrawRay (leftPosition, leftTargetPosition - leftPosition, Color.white, distance);
 					return true;
 				}
 			}
 		}
-//		RaycastHit2D topHits = Physics2D.Linecast(topPosition, topTargetPosition, ballLayer);
-//		RaycastHit2D bottomHits = Physics2D.Linecast(bottomPosition, bottomTargetPosition, ballLayer);
-//		if (topHits.collider.gameObject == targetBall.gameObject  && topHits.collider != null && bottomHits.collider != null && topHits.collider == bottomHits.collider) {
-//			BallScript hittedBall = topHits.collider.gameObject.GetComponent<BallScript> ();
-//			Debug.Log (targetBall.Id + "(Target Id) - " + hittedBall.Id + "(Hitted Id)");
-//			if (hittedBall != null 
-//				&& originBall.Index == targetBall.Index) {
-//				Debug.DrawRay (originBall.transform.position, targetBall.transform.position - originBall.transform.position, Color.white, distance);
-//				return true;
-//			}
-//		}
 		return false;
 	}
 
+	//Look for best path for a ball to chain
 	List<BallScript> RecursiveFunctionToGetBestPath(BallScript ball, List<BallScript> result, List<BallScript> bestResult){
 		if (result == null) {
 			result = new List<BallScript> ();
@@ -238,32 +217,26 @@ public class LineManagerScript : MonoBehaviour {
 		if (bestResult == null) {
 			bestResult = new List<BallScript> ();
 		}
-		result.Add (ball);
-		if (result.Count > bestResult.Count) {
-			bestResult = result;
-		}
-		List<BallScript> chainableBalls = GetChainableBalls (ball, result, false);
-		if (chainableBalls.Count > 0) {
-			IEnumerator enumerator = chainableBalls.GetEnumerator();
-			while (enumerator.MoveNext ()) {
-				BallScript chainableBall = enumerator.Current as BallScript;
-				RecursiveFunctionToGetBestPath (chainableBall, result, bestResult);
+		if (!result.Contains (ball)) {
+			result.Add (ball);
+			if (result.Count > bestResult.Count) {
+				bestResult = result;
 			}
+			List<BallScript> chainableBalls = GetChainableBalls (ball, result, false);
+			if (chainableBalls.Count > 0) {
+				IEnumerator enumerator = chainableBalls.GetEnumerator ();
+				while (enumerator.MoveNext ()) {
+					BallScript chainableBall = enumerator.Current as BallScript;
+					RecursiveFunctionToGetBestPath (chainableBall, result, bestResult);
+				}
+			}
+		} else {
+			return null;
 		}
 		return bestResult;
 	}
 
-//	List<BallScript> getBestPath(BallScript ball){
-//		List<BallScript> result = new List<BallScript> ();
-//		List<BallScript> chainableBalls = GetChainableBalls (ball, result, false);
-//		if (chainedBalls.Count > 0) {
-//			BallScript currentBall = ball;
-//			result.Add (currentBall);
-//			foreach (BallScript chainableBall in chainableBalls) {
-//			}
-//		}
-//	}
-
+	//Show the ball that has the longest possible chain
 	public void ShowHint(){
 		if (gameManager.IsAllBallNotMoving ()) {
 			List<BallScript> bestHint = new List<BallScript> ();
@@ -278,9 +251,7 @@ public class LineManagerScript : MonoBehaviour {
 					bestHint = hint;
 				}
 			}
-
 			//DrawLines (bestHint);
-
 			IEnumerator enumeratorBestHint = bestHint.GetEnumerator();
 			while (enumeratorBestHint.MoveNext ()) {
 				BallScript ball = enumeratorBestHint.Current as BallScript;

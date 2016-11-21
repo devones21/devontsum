@@ -4,16 +4,13 @@ using System.Collections;
 public class ScoreEffectScript : MonoBehaviour {
 	public Color[] colors = new Color[5];
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
 	// Update is called once per frame
+	// Move to above until disappear
 	void FixedUpdate () {
 		transform.Translate(Vector3.up * Time.deltaTime, Camera.main.transform);
 	}
 
+	// Set the score text
 	public void SetScore(int score){
 		TextMesh textMesh = GetComponent<TextMesh> ();
 		textMesh.text = score.ToString ();

@@ -3,18 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class BallGeneratorScript : MonoBehaviour {
-	public GameManagerScript gameManager;
-	public int totalBallsGenerated;
-	public float ballGenerateTimeInSeconds;
-	public Transform ballPrefab;
-	Dictionary<int, List<BallScript>> ballDictionary;
-	int invokedBalls = 0;
-	Color[] colors;
+	public GameManagerScript gameManager; //Game Manager that is working right now
+	public int totalBallsGenerated; //Total number of balls that is goinf to be generated
+	public float ballGenerateTimeInSeconds; //Delay time when ball is generated each time
+	public Transform ballPrefab; //Prefab of balls
+	Dictionary<int, List<BallScript>> ballDictionary; //Balls shall be putted here
+	int invokedBalls = 0; //Number of balls invoked
 
 	public void Start(){
 		ballDictionary = new Dictionary<int, List<BallScript>>  ();
 	}
 
+	//Function to restart game
 	public void Restart(){
 		if (transform.childCount == 0) {
 			IEnumerator initBalls = InitiateBall ();
@@ -29,6 +29,7 @@ public class BallGeneratorScript : MonoBehaviour {
 		}
 	}
 
+	//Retrieve all balls, used when game over
 	public void RetrieveAllBalls(){
 		IEnumerator enumerator = GetAllBalls ();
 		while (enumerator.MoveNext ()) {
@@ -39,6 +40,7 @@ public class BallGeneratorScript : MonoBehaviour {
 		invokedBalls = 0;
 	}
 
+	//Generate balls based on the number of balls that has been decided beforehand
 	private IEnumerator InitiateBall(){
 		while (invokedBalls < totalBallsGenerated)
 		{
@@ -47,11 +49,13 @@ public class BallGeneratorScript : MonoBehaviour {
 		}
 	}
 
+	//Recycle a ball withour a delay
 	private IEnumerator RecycleBallWithDelay(BallScript ball){
 		RecycleBall (ball);
 		yield return new WaitForSeconds(ballGenerateTimeInSeconds);
 	}
 
+	//Recycle a ball without delay
 	public void RecycleBall(BallScript ball){
 		if (ball != null) {
 			Vector3 instantiatePosition = transform.position;
@@ -69,12 +73,12 @@ public class BallGeneratorScript : MonoBehaviour {
 			ball.Initiate (ballIndex, gameManager.sprites [ballIndex]);
 			ballDictionary [ballIndex].Add (ball);
 			ball.ForceIdle ();
-			ball.Refresh ();
 		} else {
 			Debug.Log ("Ball is null");
 		}
 	}
 
+	//Instantiate a ball
 	public void GenerateBall(){
 		Vector3 instantiatePosition = transform.position;
 		instantiatePosition.y += Random.Range(0.0f, 10.0f);
@@ -92,11 +96,12 @@ public class BallGeneratorScript : MonoBehaviour {
 		invokedBalls++;
 	}
 
-
+	//Get all balls generated
 	public IEnumerator GetAllBalls(){
 		return transform.GetEnumerator ();
 	}
 
+	//Get all balls based on color index
 	public List<BallScript> GetBallsBasedOnIndex(int index){
 		if (ballDictionary.ContainsKey (index)) {
 			return ballDictionary [index];
