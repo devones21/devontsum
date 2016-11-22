@@ -7,16 +7,16 @@ public class BallGeneratorScript : MonoBehaviour {
 	public int totalBallsGenerated; //Total number of balls that is goinf to be generated
 	public float ballGenerateTimeInSeconds; //Delay time when ball is generated each time
 	public Transform ballPrefab; //Prefab of balls
-	public bool isRecycling = false;
-	Dictionary<int, List<BallScript>> ballDictionary; //Balls shall be putted here
-	int invokedBalls = 0; //Number of balls invoked
+	bool isRecycling = false;
+	protected Dictionary<int, List<BallScript>> ballDictionary; //Balls shall be putted here
+	protected int invokedBalls = 0; //Number of balls invoked
 
 	public void Start(){
 		ballDictionary = new Dictionary<int, List<BallScript>>  ();
 	}
 
 	//Function to restart game
-	public void Restart(){
+	public virtual void Restart(){
 		if (transform.childCount == 0) {
 			IEnumerator initBalls = InitiateBall ();
 			StartCoroutine (initBalls);
@@ -42,7 +42,7 @@ public class BallGeneratorScript : MonoBehaviour {
 	}
 
 	//Generate balls based on the number of balls that has been decided beforehand
-	private IEnumerator InitiateBall(){
+	protected virtual IEnumerator InitiateBall(){
 		while (invokedBalls < totalBallsGenerated)
 		{
 			GenerateBall();
@@ -57,7 +57,7 @@ public class BallGeneratorScript : MonoBehaviour {
 	}
 
 	//Recycle a ball without delay
-	public void RecycleBall(BallScript ball){
+	public virtual void RecycleBall(BallScript ball){
 		if (ball != null) {
 			ball.EnableRigidbody ();
 			Vector3 instantiatePosition = transform.position;
@@ -82,7 +82,7 @@ public class BallGeneratorScript : MonoBehaviour {
 	}
 
 	//Instantiate a ball
-	public void GenerateBall(){
+	public virtual void GenerateBall(){
 		Vector3 instantiatePosition = transform.position;
 		instantiatePosition.y += Random.Range(0.0f, 10.0f);
 		instantiatePosition.x += Random.Range(-4.0f, 4.0f);
@@ -139,6 +139,15 @@ public class BallGeneratorScript : MonoBehaviour {
 		}
 		set{
 			invokedBalls = value;
+		}
+	}
+
+	public bool IsRecycling{
+		get{
+			return isRecycling;
+		}
+		set{
+			isRecycling = value;
 		}
 	}
 }

@@ -3,8 +3,8 @@ using System.Collections;
 
 public class BallScript : MonoBehaviour {
 	public Transform scorePrefab;
-	int index;
-	public int id;
+	public int index;
+	int id;
 	Sprite sprite;
 	Animator animator;
 	Rigidbody2D theRigidbody;

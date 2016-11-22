@@ -48,6 +48,7 @@
      <Compile Include="Assets\Scripts\BallGeneratorScript.cs" />
      <Compile Include="Assets\Scripts\BallScript.cs" />
      <Compile Include="Assets\Scripts\CountdownScript.cs" />
+     <Compile Include="Assets\Scripts\DebugBallGeneratorScript.cs" />
      <Compile Include="Assets\Scripts\GameManagerScript.cs" />
      <Compile Include="Assets\Scripts\LineManagerScript.cs" />
      <Compile Include="Assets\Scripts\ScoreEffectScript.cs" />

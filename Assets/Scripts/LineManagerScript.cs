@@ -7,13 +7,13 @@ public class LineManagerScript : MonoBehaviour {
 	public LayerMask ballLayer; //Layer of the balls
 	LineRenderer lineRenderer; //Line Renderer that we will use to render line
 	List<BallScript> chainedBalls; //Currently chained balls
-	List<BallScript> bestPathBalls; //Possible balls that can be chained from current chained ball
+	List<BallScript> hintBalls; //Possible balls that can be chained from current chained ball
 	int chosenIndex = -1; //Currently chosen balls index
 
 	void Start(){
 		lineRenderer = GetComponent<LineRenderer> ();
 		chainedBalls = new List<BallScript> ();
-		bestPathBalls = new List<BallScript> ();
+		hintBalls = new List<BallScript> ();
 	}
 
 	void Update() {
@@ -39,7 +39,7 @@ public class LineManagerScript : MonoBehaviour {
 					&& ball.Index == chosenIndex
 					&& !chainedBalls.Contains(ball)
 					&& IsThisBallChainable(chainedBalls, chainedBalls[chainedBalls.Count - 1], ball)) {
-					IEnumerator enumerator = bestPathBalls.GetEnumerator ();
+					IEnumerator enumerator = hintBalls.GetEnumerator ();
 					while (enumerator.MoveNext ()) {
 						BallScript chainableBall = enumerator.Current as BallScript;
 						if (chainableBall.GetInstanceID () != ball.GetInstanceID () && !chainedBalls.Contains(chainableBall)) {
@@ -98,8 +98,10 @@ public class LineManagerScript : MonoBehaviour {
 	//Chain a ball
 	public void AddBall(BallScript ball){
 		if (GetChainableBalls (ball, chainedBalls, false).Count > 0) {
-			bestPathBalls = RecursiveFunctionToGetBestPath (ball, new List<BallScript>(chainedBalls), null);
-			foreach(BallScript selectableBall in bestPathBalls){
+			hintBalls = new List<BallScript> ();
+			hintBalls = RecursiveFunctionToGetBestPath (ball, new List<BallScript>(chainedBalls));
+			//DrawLines (hintBalls);
+			foreach(BallScript selectableBall in hintBalls){
 				if(ball != selectableBall)selectableBall.Selectable ();
 			}
 		}
@@ -211,49 +213,46 @@ public class LineManagerScript : MonoBehaviour {
 	}
 
 	//Look for best path for a ball to chain
-	List<BallScript> RecursiveFunctionToGetBestPath(BallScript ball, List<BallScript> result, List<BallScript> bestResult){
+	List<BallScript> RecursiveFunctionToGetBestPath(BallScript ball, List<BallScript> result){
 		if (result == null) {
 			result = new List<BallScript> ();
 		}
-		if (bestResult == null) {
-			bestResult = new List<BallScript> ();
+		if (hintBalls == null) {
+			hintBalls = new List<BallScript> ();
 		}
 		if (!result.Contains (ball)) {
 			result.Add (ball);
-			if (result.Count > bestResult.Count) {
-				bestResult = result;
-			}
 			List<BallScript> chainableBalls = GetChainableBalls (ball, result, false);
 			if (chainableBalls.Count > 0) {
 				IEnumerator enumerator = chainableBalls.GetEnumerator ();
 				while (enumerator.MoveNext ()) {
 					BallScript chainableBall = enumerator.Current as BallScript;
-					RecursiveFunctionToGetBestPath (chainableBall, result, bestResult);
+					RecursiveFunctionToGetBestPath (chainableBall, new List<BallScript>(result));
+				}
+			} else {		
+				if (result.Count > hintBalls.Count) {
+					hintBalls = result;
 				}
 			}
 		} else {
 			return null;
 		}
-		return bestResult;
+
+		return hintBalls;
 	}
 
 	//Show the ball that has the longest possible chain
 	public void ShowHint(){
 		if (gameManager.IsAllBallNotMoving ()) {
-			List<BallScript> bestHint = new List<BallScript> ();
-
+			hintBalls = new List<BallScript> ();
 			IEnumerator enumerator = gameManager.ballGenerator.GetAllBalls ();
 			while (enumerator.MoveNext ()) {
 				Transform ballTransform = enumerator.Current as Transform;
 				BallScript ball = ballTransform.GetComponent<BallScript> ();
-
-				List<BallScript> hint = RecursiveFunctionToGetBestPath (ball, null, null);
-				if (hint.Count > bestHint.Count) {
-					bestHint = hint;
-				}
+				RecursiveFunctionToGetBestPath (ball, null);
 			}
-			//DrawLines (bestHint);
-			IEnumerator enumeratorBestHint = bestHint.GetEnumerator();
+			DrawLines (hintBalls);
+			IEnumerator enumeratorBestHint = hintBalls.GetEnumerator();
 			while (enumeratorBestHint.MoveNext ()) {
 				BallScript ball = enumeratorBestHint.Current as BallScript;
 				ball.Hint ();
