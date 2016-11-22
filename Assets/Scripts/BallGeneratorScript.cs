@@ -7,7 +7,8 @@ public class BallGeneratorScript : MonoBehaviour {
 	public int totalBallsGenerated; //Total number of balls that is goinf to be generated
 	public float ballGenerateTimeInSeconds; //Delay time when ball is generated each time
 	public Transform ballPrefab; //Prefab of balls
-	bool isRecycling = false;
+	public float bombProbability; //Prob of a bomb generated
+	bool isRecycling = false; //Is a ball being recycled
 	protected Dictionary<int, List<BallScript>> ballDictionary; //Balls shall be putted here
 	protected int invokedBalls = 0; //Number of balls invoked
 
@@ -76,14 +77,21 @@ public class BallGeneratorScript : MonoBehaviour {
 			ballRigidbody.angularVelocity = 0.0f;
 
 			instantiatePosition.y += Random.Range (0.0f, 10.0f);
-			instantiatePosition.x += Random.Range (-4.0f, 4.0f);
+			instantiatePosition.x += Random.Range (-2.0f, 2.0f);
 			ball.transform.position = instantiatePosition;
-			int ballIndex = Random.Range (0, gameManager.sprites.Length);
-			if (!ballDictionary.ContainsKey (ballIndex)) {
-				ballDictionary.Add (ballIndex, new List<BallScript> ());
+			int ballIndex = -1;
+			float bombProb = Random.Range (0.0f, 1.0f);
+			if (bombProb < bombProbability) {
+				ballIndex = BallScript.Constants.bombIndex;
+				ball.Initiate (ballIndex, gameManager.bombSprite);
+			} else {
+				ballIndex = Random.Range (0, gameManager.sprites.Length);
+				if (!ballDictionary.ContainsKey (ballIndex)) {
+					ballDictionary.Add (ballIndex, new List<BallScript> ());
+				}
+				ball.Initiate (ballIndex, gameManager.sprites[ballIndex]);
+				ballDictionary [ballIndex].Add (ball);
 			}
-			ball.Initiate (ballIndex, gameManager.sprites [ballIndex]);
-			ballDictionary [ballIndex].Add (ball);
 			ball.ForceIdle ();
 		} else {
 			Debug.Log ("Ball is null");
@@ -94,16 +102,23 @@ public class BallGeneratorScript : MonoBehaviour {
 	public virtual void GenerateBall(){
 		Vector3 instantiatePosition = transform.position;
 		instantiatePosition.y += Random.Range(0.0f, 10.0f);
-		instantiatePosition.x += Random.Range(-4.0f, 4.0f);
+		instantiatePosition.x += Random.Range(-2.0f, 2.0f);
 		GameObject ballObject = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
 		BallScript ball = ballObject.GetComponent<BallScript> ();
 		ball.Id = invokedBalls;
-		int ballIndex = Random.Range (0, gameManager.sprites.Length);
-		if (!ballDictionary.ContainsKey(ballIndex)) {
-			ballDictionary.Add (ballIndex, new List<BallScript> ());
+		int ballIndex = -1;
+		float bombProb = Random.Range (0.0f, 1.0f);
+		if (bombProb < bombProbability) {
+			ballIndex = BallScript.Constants.bombIndex;
+			ball.Initiate (ballIndex, gameManager.bombSprite);
+		} else {
+			ballIndex = Random.Range (0, gameManager.sprites.Length);
+			if (!ballDictionary.ContainsKey (ballIndex)) {
+				ballDictionary.Add (ballIndex, new List<BallScript> ());
+			}
+			ball.Initiate (ballIndex, gameManager.sprites[ballIndex]);
+			ballDictionary [ballIndex].Add (ball);
 		}
-		ball.Initiate (ballIndex, gameManager.sprites[ballIndex]);
-		ballDictionary [ballIndex].Add (ball);
 		ball.transform.parent = transform;
 		invokedBalls++;
 	}
@@ -117,29 +132,30 @@ public class BallGeneratorScript : MonoBehaviour {
 	public List<BallScript> GetBallsBasedOnIndex(int index){
 		if (ballDictionary.ContainsKey (index)) {
 			return ballDictionary [index];
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	public void DisableBallRigidbodies(){
-		if (isRecycling == false) {
-			IEnumerator enumerator = GetAllBalls ();
-			while (enumerator.MoveNext ()) {
-				Transform ballTransform = enumerator.Current as Transform;
-				BallScript ball = ballTransform.GetComponent<BallScript> ();
-				ball.DisableRigidbody ();
-			}
-		}
+//		if (isRecycling == false) {
+//			IEnumerator enumerator = GetAllBalls ();
+//			while (enumerator.MoveNext ()) {
+//				Transform ballTransform = enumerator.Current as Transform;
+//				BallScript ball = ballTransform.GetComponent<BallScript> ();
+//				ball.DisableRigidbody ();
+//			}
+//		}
 	}
 
 	public void EnableBallRigidbodies(){
-		isRecycling = true;
-		IEnumerator enumerator = GetAllBalls ();
-		while (enumerator.MoveNext ()) {
-			Transform ballTransform = enumerator.Current as Transform;
-			BallScript ball = ballTransform.GetComponent<BallScript> ();
-			ball.EnableRigidbody ();
-		}
+//		isRecycling = true;
+//		IEnumerator enumerator = GetAllBalls ();
+//		while (enumerator.MoveNext ()) {
+//			Transform ballTransform = enumerator.Current as Transform;
+//			BallScript ball = ballTransform.GetComponent<BallScript> ();
+//			ball.EnableRigidbody ();
+//		}
 	}
 
 	public int InvokedBalls{

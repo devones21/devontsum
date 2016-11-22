@@ -23,8 +23,12 @@ public class LineManagerScript : MonoBehaviour {
 			if (gameManager.IsAllBallNotMoving ()) {
 				BallScript ball = GetBallTouched ();
 				if (ball != null){
-					chosenIndex = ball.Index;
-					AddBall (ball);
+					if (ball.Index == BallScript.Constants.bombIndex) {
+						ExplodeBomb(ball);
+					} else {
+						chosenIndex = ball.Index;
+						AddBall (ball);
+					}
 				} 
 				else {
 					//gameManager.refreshAllBalls ();
@@ -85,6 +89,34 @@ public class LineManagerScript : MonoBehaviour {
 			}
 		}
 		Restart ();
+	}
+
+	public void ExplodeBomb(BallScript bomb){
+		if (bomb.index != BallScript.Constants.bombIndex) {
+			return;
+		}
+		Vector3 bombPositon = bomb.transform.position;
+		int score = 100;
+		int lastScore = score;
+		IEnumerator enumerator = gameManager.ballGenerator.GetAllBalls ();
+		bomb.ForceRetrieved ();
+		while (enumerator.MoveNext()) {
+			Transform otherBallTransform = enumerator.Current as Transform;
+			BallScript otherBallScript = otherBallTransform.GetComponent<BallScript> ();
+			if (bomb.gameObject != otherBallTransform.gameObject) {
+				float distance = Vector3.Distance (bombPositon, otherBallTransform.transform.position);
+				if (distance < 2.0f) {
+					if (otherBallScript.Index == BallScript.Constants.bombIndex) {
+						ExplodeBomb (otherBallScript);
+					} else {
+						otherBallScript.RetrievedAddScore (score);
+						gameManager.AddScore (score);
+						score += lastScore;
+						lastScore = score - lastScore;
+					}
+				}
+			}
+		}
 	}
 
 	//Cancel last action
@@ -181,14 +213,16 @@ public class LineManagerScript : MonoBehaviour {
 	List<BallScript> GetChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
 		List<BallScript> result = new List<BallScript> ();
 		IEnumerator enumerator = gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).GetEnumerator();
-		while (enumerator.MoveNext ()) {
-			BallScript checkedBall = enumerator.Current as BallScript;
-			if (!list.Contains(checkedBall) 
-				&& ball.Index == checkedBall.Index
-				&& IsThisBallChainable (list, ball, checkedBall)) {
-				result.Add (checkedBall);
-				if (isSelectable) {
-					checkedBall.Selectable ();
+		if (enumerator != null) {
+			while (enumerator.MoveNext ()) {
+				BallScript checkedBall = enumerator.Current as BallScript;
+				if (!list.Contains (checkedBall)
+				   && ball.Index == checkedBall.Index
+				   && IsThisBallChainable (list, ball, checkedBall)) {
+					result.Add (checkedBall);
+					if (isSelectable) {
+						checkedBall.Selectable ();
+					}
 				}
 			}
 		}

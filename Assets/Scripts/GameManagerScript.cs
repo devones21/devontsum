@@ -14,11 +14,12 @@ public class GameManagerScript : MonoBehaviour {
 	public Color readyColor; //Color of text when game is ready to be played
 	public Color notReadyColor; //Color of text when game is not ready to be played
 	public Sprite[] sprites; //Sprites of the balls
+	public Sprite bombSprite;
 	public BallGeneratorScript ballGenerator; //Ball Generator is needed to get the balls and their conditions
 	public LineManagerScript lineManagerScript; //Line Manager that manage user interface
-	public float raycastWidth = 1.0f;
-	bool isPlaying;
-	int score = 0;
+	public float raycastWidth = 1.0f; //Width of raycast used for chain
+	bool isPlaying; //Bool to check if game is playing or not
+	int score = 0; //Score accumulated
 
 	// Use this for initialization
 	void Start () {
@@ -84,14 +85,14 @@ public class GameManagerScript : MonoBehaviour {
 
 	//Check if all balls is moving or not
 	public bool IsAllBallNotMoving(){
-		IEnumerator enumerator = ballGenerator.GetAllBalls();
-		while(enumerator.MoveNext ()){
-			Transform child = enumerator.Current as Transform;
-			BallScript ball = child.GetComponent<BallScript>();
-			if(ball.IsMoving()){
-				return false;
-			}
-		};
+//		IEnumerator enumerator = ballGenerator.GetAllBalls();
+//		while(enumerator.MoveNext ()){
+//			Transform child = enumerator.Current as Transform;
+//			BallScript ball = child.GetComponent<BallScript>();
+//			if(ball.IsMoving()){
+//				return false;
+//			}
+//		};
 		return true;
 	}
 

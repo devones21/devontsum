@@ -29,8 +29,9 @@ public class BallScript : MonoBehaviour {
 	}
 
 	//Constants for animations
-	static class Constants
+	public static class Constants
 	{
+		public const int bombIndex = 5;
 		public const string isSelected = "isSelected";
 		public const string isSelectable  = "isSelectable"; 
 		public const string isRetrieved  = "isRetrieved"; 
@@ -51,6 +52,12 @@ public class BallScript : MonoBehaviour {
 	public void Retrieved(){
 		SwitchAnimationToRetrieved ();
 		StartCoroutine(Recycle (animator.GetCurrentAnimatorStateInfo(0).length));
+	}
+
+	//Force Retrieved 
+	public void ForceRetrieved(){
+		SwitchAnimationToRetrieved ();
+		ForceRecycle ();
 	}
 
 	//Enter Chainable condition
@@ -153,6 +160,23 @@ public class BallScript : MonoBehaviour {
 			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
 			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
 			ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
+
+			if (gameManager.IsPlaying) {
+				ballGenerator.RecycleBall (this);
+				ballGenerator.IsRecycling = false;
+			}
+		}
+	}
+
+
+	//Recycle the ball
+	private void ForceRecycle(){
+		GameObject ballGeneratorObject = GameObject.Find ("BallGenerator");
+		GameObject gameManagerObject = GameObject.Find ("GameManager");
+		if (ballGeneratorObject != null && gameManagerObject  != null) {
+			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
+			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
+			if(index != Constants.bombIndex) ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
 
 			if (gameManager.IsPlaying) {
 				ballGenerator.RecycleBall (this);
