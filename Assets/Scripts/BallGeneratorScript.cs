@@ -23,10 +23,13 @@ public class BallGeneratorScript : MonoBehaviour {
 		} else {
 			IEnumerator enumerator = GetAllBalls ();
 			while (enumerator.MoveNext ()) {
+				isRecycling = true;
 				Transform child = enumerator.Current as Transform;
 				BallScript ball = child.GetComponent<BallScript> ();
-				StartCoroutine(RecycleBallWithDelay (ball));
+				RecycleBall (ball);
+				invokedBalls++;
 			}
+			StartCoroutine(ResetIsRecycling (1.0f));
 		}
 	}
 
@@ -53,12 +56,19 @@ public class BallGeneratorScript : MonoBehaviour {
 	//Recycle a ball withour a delay
 	private IEnumerator RecycleBallWithDelay(BallScript ball){
 		RecycleBall (ball);
-		yield return new WaitForSeconds(ballGenerateTimeInSeconds);
+		yield return new WaitForSeconds(0.05f);
+		invokedBalls++;
+	}
+
+	private IEnumerator ResetIsRecycling(float delay){
+		yield return new WaitForSeconds(delay);
+		isRecycling = false;
 	}
 
 	//Recycle a ball without delay
 	public virtual void RecycleBall(BallScript ball){
 		if (ball != null) {
+			isRecycling = true;
 			ball.EnableRigidbody ();
 			Vector3 instantiatePosition = transform.position;
 			Rigidbody2D ballRigidbody = ball.GetComponent<Rigidbody2D> ();
@@ -75,7 +85,6 @@ public class BallGeneratorScript : MonoBehaviour {
 			ball.Initiate (ballIndex, gameManager.sprites [ballIndex]);
 			ballDictionary [ballIndex].Add (ball);
 			ball.ForceIdle ();
-			isRecycling = false;
 		} else {
 			Debug.Log ("Ball is null");
 		}
@@ -112,25 +121,25 @@ public class BallGeneratorScript : MonoBehaviour {
 			return null;
 	}
 
-	public void DisableBallRigibodies(){
-		//if (isRecycling == false) {
-//			IEnumerator enumerator = GetAllBalls ();
-//			while (enumerator.MoveNext ()) {
-//				Transform ballTransform = enumerator.Current as Transform;
-//				BallScript ball = ballTransform.GetComponent<BallScript> ();
-//				ball.DisableRigidbody ();
-//			}
-		//}
+	public void DisableBallRigidbodies(){
+		if (isRecycling == false) {
+			IEnumerator enumerator = GetAllBalls ();
+			while (enumerator.MoveNext ()) {
+				Transform ballTransform = enumerator.Current as Transform;
+				BallScript ball = ballTransform.GetComponent<BallScript> ();
+				ball.DisableRigidbody ();
+			}
+		}
 	}
 
-	public void EnableBallRigibodies(){
-//		isRecycling = true;
-//		IEnumerator enumerator = GetAllBalls ();
-//		while (enumerator.MoveNext ()) {
-//			Transform ballTransform = enumerator.Current as Transform;
-//			BallScript ball = ballTransform.GetComponent<BallScript> ();
-//			ball.EnableRigidbody ();
-//		}
+	public void EnableBallRigidbodies(){
+		isRecycling = true;
+		IEnumerator enumerator = GetAllBalls ();
+		while (enumerator.MoveNext ()) {
+			Transform ballTransform = enumerator.Current as Transform;
+			BallScript ball = ballTransform.GetComponent<BallScript> ();
+			ball.EnableRigidbody ();
+		}
 	}
 
 	public int InvokedBalls{

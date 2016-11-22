@@ -123,7 +123,7 @@ public class BallScript : MonoBehaviour {
 	//Check if baal is moving
 	public bool IsMoving(){
 		if (theRigidbody != null && GetComponent<Rigidbody2D>() != null) {
-			if (Mathf.Abs (theRigidbody.velocity.y) > 1 || Mathf.Abs (theRigidbody.velocity.x) > 1) {
+			if (Mathf.Abs (theRigidbody.velocity.y) > 0.1f || Mathf.Abs (theRigidbody.velocity.x) > 0.1f) {
 				return true;
 			} else
 				return false;
@@ -156,6 +156,7 @@ public class BallScript : MonoBehaviour {
 
 			if (gameManager.IsPlaying) {
 				ballGenerator.RecycleBall (this);
+				ballGenerator.IsRecycling = false;
 			}
 		}
 	}

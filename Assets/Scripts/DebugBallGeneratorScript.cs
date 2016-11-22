@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class DebugBallGeneratorScript : BallGeneratorScript {
 
 
+	//Fill Ball Dictionary with balls that are already attached instead of generating new balls
 	public override void Restart(){
 		IEnumerator enumerator = GetAllBalls ();
 		while (enumerator.MoveNext ()) {

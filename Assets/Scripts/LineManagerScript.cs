@@ -5,13 +5,15 @@ using System.Collections;
 public class LineManagerScript : MonoBehaviour {
 	public GameManagerScript gameManager; //GameManager to get settings
 	public LayerMask ballLayer; //Layer of the balls
-	LineRenderer lineRenderer; //Line Renderer that we will use to render line
+	LineRenderer realLineRenderer; //Line Renderer that we will use to render real line
+	LineRenderer hintLineRenderer; //Line Renderer that we will use to render hint line
 	List<BallScript> chainedBalls; //Currently chained balls
 	List<BallScript> hintBalls; //Possible balls that can be chained from current chained ball
 	int chosenIndex = -1; //Currently chosen balls index
 
 	void Start(){
-		lineRenderer = GetComponent<LineRenderer> ();
+		realLineRenderer = transform.FindChild("RealLine").GetComponent<LineRenderer> ();
+		hintLineRenderer = transform.FindChild("HintLine").GetComponent<LineRenderer> ();
 		chainedBalls = new List<BallScript> ();
 		hintBalls = new List<BallScript> ();
 	}
@@ -57,6 +59,7 @@ public class LineManagerScript : MonoBehaviour {
 			if (gameManager.IsAllBallNotMoving () && chosenIndex != -1) {
 				if (chainedBalls.Count >= 3) {
 					RetrieveBalls ();
+					gameManager.ballGenerator.EnableBallRigidbodies ();
 				} else {
 					Restart ();
 				}
@@ -90,9 +93,8 @@ public class LineManagerScript : MonoBehaviour {
 		chosenIndex = -1;
 		if (chainedBalls != null) {
 			chainedBalls.Clear ();
-			DrawLines (chainedBalls);
+			DrawRealLines (chainedBalls);
 		}
-		gameManager.ballGenerator.EnableBallRigibodies ();
 	}
 
 	//Chain a ball
@@ -107,22 +109,40 @@ public class LineManagerScript : MonoBehaviour {
 		}
 		chainedBalls.Add (ball);
 		ball.Selected ();
-		DrawLines (chainedBalls);
+		DrawRealLines (chainedBalls);
 	}
 
 	//Draw lines to a group of balls
-	public void DrawLines(List<BallScript> list){
-		if (list.Count > 1) {
+	public void DrawRealLines(List<BallScript> list){
+		if (list != null && list.Count > 1) {
 			Vector3[] ballPositions = new Vector3[list.Count];
 			for (int i = 0; i < list.Count; i++) {
 				ballPositions [i] = list [i].transform.position;
 				ballPositions [i].z = 0;
 			}
 			ballPositions = Generate_Points (ballPositions, 100);
-			lineRenderer.SetVertexCount (ballPositions.Length);
-			lineRenderer.SetPositions (ballPositions);
+			realLineRenderer.SetVertexCount (ballPositions.Length);
+			realLineRenderer.SetPositions (ballPositions);
 		} else {
-			lineRenderer.SetVertexCount (0);
+			realLineRenderer.SetVertexCount (0);
+		}
+	}
+
+	//Draw lines to a group of balls
+	public IEnumerator DrawHintLines(List<BallScript> list){
+		if (list != null && list.Count > 1) {
+			Vector3[] ballPositions = new Vector3[list.Count];
+			for (int i = 0; i < list.Count; i++) {
+				ballPositions [i] = list [i].transform.position;
+				ballPositions [i].z = 0;
+			}
+			ballPositions = Generate_Points (ballPositions, 100);
+			hintLineRenderer.SetVertexCount (ballPositions.Length);
+			hintLineRenderer.SetPositions (ballPositions);
+			StartCoroutine (DrawHintLines (null));
+		} else {
+			yield return new WaitForSeconds (1.0f);
+			hintLineRenderer.SetVertexCount (0);
 		}
 	}
 
@@ -229,7 +249,7 @@ public class LineManagerScript : MonoBehaviour {
 					BallScript chainableBall = enumerator.Current as BallScript;
 					RecursiveFunctionToGetBestPath (chainableBall, new List<BallScript>(result));
 				}
-			} else {		
+			} else {
 				if (result.Count > hintBalls.Count) {
 					hintBalls = result;
 				}
@@ -251,7 +271,7 @@ public class LineManagerScript : MonoBehaviour {
 				BallScript ball = ballTransform.GetComponent<BallScript> ();
 				RecursiveFunctionToGetBestPath (ball, null);
 			}
-			DrawLines (hintBalls);
+			StartCoroutine(DrawHintLines (hintBalls));
 			IEnumerator enumeratorBestHint = hintBalls.GetEnumerator();
 			while (enumeratorBestHint.MoveNext ()) {
 				BallScript ball = enumeratorBestHint.Current as BallScript;
