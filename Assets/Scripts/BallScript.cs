@@ -8,6 +8,8 @@ public class BallScript : MonoBehaviour {
 	Sprite sprite;
 	Animator animator;
 	Rigidbody2D theRigidbody;
+	ParticleSystem ballParticle;
+	ParticleSystem bombParticle;
 
 	public int Index
 	{
@@ -28,9 +30,22 @@ public class BallScript : MonoBehaviour {
 		}
 	}
 
+	public ParticleSystem BombParticle
+	{
+		get 
+		{
+			return bombParticle;
+		}
+	}
+
 	//Constants for animations
 	public static class Constants
 	{
+		public const int blueIndex = 0;
+		public const int greenIndex = 1;
+		public const int purpleIndex = 2;
+		public const int redIndex = 3;
+		public const int yellowIndex = 4;
 		public const int bombIndex = 5;
 		public const string isSelected = "isSelected";
 		public const string isSelectable  = "isSelectable"; 
@@ -41,6 +56,8 @@ public class BallScript : MonoBehaviour {
 	void Start () {
 		theRigidbody = GetComponent<Rigidbody2D> ();
 		animator = GetComponent<Animator> ();
+		ballParticle = transform.FindChild ("RetrievedParticle").GetComponent<ParticleSystem> ();
+		bombParticle = transform.FindChild ("BombParticle").GetComponent<ParticleSystem> ();
 	}
 
 	//Enter Chained condtion
@@ -57,7 +74,11 @@ public class BallScript : MonoBehaviour {
 	//Force Retrieved 
 	public void ForceRetrieved(){
 		SwitchAnimationToRetrieved ();
-		ForceRecycle ();
+		if (bombParticle.gameObject != null && bombParticle != null) {
+			//bombParticle.transform.parent = transform.parent.parent;
+			bombParticle.Play ();
+			Recycle (bombParticle.duration);
+		}
 	}
 
 	//Enter Chainable condition
@@ -88,6 +109,9 @@ public class BallScript : MonoBehaviour {
 	public void SwitchAnimationToRetrieved(){
 		if (animator == null) {
 			animator = GetComponent<Animator> ();
+		}
+		if (index != Constants.bombIndex) {
+			ballParticle.Play ();
 		}
 		animator.SetTrigger (Constants.isRetrieved);
 	}
@@ -122,8 +146,31 @@ public class BallScript : MonoBehaviour {
 		this.index = index;
 		this.sprite = sprite;
 
+		if (ballParticle == null) {
+			ballParticle = transform.FindChild ("RetrievedParticle").GetComponent<ParticleSystem> ();
+		}
+
 		SpriteRenderer ballSpriteRenderer = transform.GetComponentsInChildren<SpriteRenderer>()[0];
-		if(ballSpriteRenderer != null) ballSpriteRenderer.sprite = sprite;
+		if (ballSpriteRenderer != null) {
+			ballSpriteRenderer.sprite = sprite;
+			switch (index) {
+			case Constants.blueIndex:
+				ballParticle.startColor = Color.blue;
+				break;
+			case Constants.greenIndex:
+				ballParticle.startColor = Color.green;
+				break;
+			case Constants.purpleIndex:
+				ballParticle.startColor = Color.magenta;
+				break;
+			case Constants.redIndex:
+				ballParticle.startColor = Color.red;
+				break;
+			case Constants.yellowIndex:
+				ballParticle.startColor = Color.yellow;
+				break;
+			}
+		}
 		Idle ();
 	}
 
@@ -159,7 +206,7 @@ public class BallScript : MonoBehaviour {
 		if (ballGeneratorObject != null && gameManagerObject  != null) {
 			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
 			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
-			ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
+			if(index != Constants.bombIndex) ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
 
 			if (gameManager.IsPlaying) {
 				ballGenerator.RecycleBall (this);

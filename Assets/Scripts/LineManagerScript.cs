@@ -19,40 +19,29 @@ public class LineManagerScript : MonoBehaviour {
 	}
 
 	void Update() {
-		if (Input.GetMouseButtonDown(0)) {
+		if (Input.GetMouseButton (0)) {
 			if (gameManager.IsAllBallNotMoving ()) {
 				BallScript ball = GetBallTouched ();
-				if (ball != null){
-					if (ball.Index == BallScript.Constants.bombIndex) {
-						ExplodeBomb(ball);
-					} else {
-						chosenIndex = ball.Index;
+				if (ball != null) {
+					if (chosenIndex == -1) {
+						if (ball.Index == BallScript.Constants.bombIndex) {
+							ExplodeBomb(ball);
+						} else {
+							chosenIndex = ball.Index;
+							AddBall (ball);
+						}
+					} else if (ball.Index == chosenIndex
+					   && !chainedBalls.Contains (ball)
+					   && IsThisBallChainable (chainedBalls, chainedBalls [chainedBalls.Count - 1], ball)) {
+						IEnumerator enumerator = hintBalls.GetEnumerator ();
+						while (enumerator.MoveNext ()) {
+							BallScript chainableBall = enumerator.Current as BallScript;
+							if (chainableBall.GetInstanceID () != ball.GetInstanceID () && !chainedBalls.Contains (chainableBall)) {
+								chainableBall.Idle ();
+							}
+						}
 						AddBall (ball);
 					}
-				} 
-				else {
-					//gameManager.refreshAllBalls ();
-				}
-			} 
-			else {
-				Restart ();
-			}
-		}
-		else if (Input.GetMouseButton (0)) {
-			if (gameManager.IsAllBallNotMoving () && chosenIndex != -1) {
-				BallScript ball = GetBallTouched ();
-				if (ball != null
-					&& ball.Index == chosenIndex
-					&& !chainedBalls.Contains(ball)
-					&& IsThisBallChainable(chainedBalls, chainedBalls[chainedBalls.Count - 1], ball)) {
-					IEnumerator enumerator = hintBalls.GetEnumerator ();
-					while (enumerator.MoveNext ()) {
-						BallScript chainableBall = enumerator.Current as BallScript;
-						if (chainableBall.GetInstanceID () != ball.GetInstanceID () && !chainedBalls.Contains(chainableBall)) {
-							chainableBall.Idle ();
-						}
-					}
-					AddBall (ball);
 				}
 			} 
 			else {
@@ -107,7 +96,7 @@ public class LineManagerScript : MonoBehaviour {
 				float distance = Vector3.Distance (bombPositon, otherBallTransform.transform.position);
 				if (distance < 2.0f) {
 					if (otherBallScript.Index == BallScript.Constants.bombIndex) {
-						ExplodeBomb (otherBallScript);
+						if(!otherBallScript.BombParticle.isPlaying) ExplodeBomb (otherBallScript);
 					} else {
 						otherBallScript.RetrievedAddScore (score);
 						gameManager.AddScore (score);
@@ -212,16 +201,18 @@ public class LineManagerScript : MonoBehaviour {
 	//Get balls that can be chained from a ball position
 	List<BallScript> GetChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
 		List<BallScript> result = new List<BallScript> ();
-		IEnumerator enumerator = gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).GetEnumerator();
-		if (enumerator != null) {
-			while (enumerator.MoveNext ()) {
-				BallScript checkedBall = enumerator.Current as BallScript;
-				if (!list.Contains (checkedBall)
-				   && ball.Index == checkedBall.Index
-				   && IsThisBallChainable (list, ball, checkedBall)) {
-					result.Add (checkedBall);
-					if (isSelectable) {
-						checkedBall.Selectable ();
+		if (ball.index != BallScript.Constants.bombIndex) {
+			IEnumerator enumerator = gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).GetEnumerator ();
+			if (enumerator != null) {
+				while (enumerator.MoveNext ()) {
+					BallScript checkedBall = enumerator.Current as BallScript;
+					if (!list.Contains (checkedBall)
+					   && ball.Index == checkedBall.Index
+					   && IsThisBallChainable (list, ball, checkedBall)) {
+						result.Add (checkedBall);
+						if (isSelectable) {
+							checkedBall.Selectable ();
+						}
 					}
 				}
 			}
@@ -305,7 +296,7 @@ public class LineManagerScript : MonoBehaviour {
 				BallScript ball = ballTransform.GetComponent<BallScript> ();
 				RecursiveFunctionToGetBestPath (ball, null);
 			}
-			StartCoroutine(DrawHintLines (hintBalls));
+			//StartCoroutine(DrawHintLines (hintBalls));
 			IEnumerator enumeratorBestHint = hintBalls.GetEnumerator();
 			while (enumeratorBestHint.MoveNext ()) {
 				BallScript ball = enumeratorBestHint.Current as BallScript;
