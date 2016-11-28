@@ -18,11 +18,13 @@ public class GameManagerScript : MonoBehaviour {
 	public BallGeneratorScript ballGenerator; //Ball Generator is needed to get the balls and their conditions
 	public LineManagerScript lineManagerScript; //Line Manager that manage user interface
 	public float raycastWidth = 1.0f; //Width of raycast used for chain
+	public float time;
 	bool isPlaying; //Bool to check if game is playing or not
 	int score = 0; //Score accumulated
 
 	// Use this for initialization
 	void Start () {
+		countdown.CountdownTime = time;
 		StartCountdown ();
 	}
 

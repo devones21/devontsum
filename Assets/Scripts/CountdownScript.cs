@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 
 public class CountdownScript : MonoBehaviour {
-	public float time;
+	float countdownTime;
 	public GameManagerScript gameManager;
 	float timeLeft;
 	int lastTime = 0;
@@ -16,7 +16,7 @@ public class CountdownScript : MonoBehaviour {
 
 	//Restart countdown
 	public void Restart(){
-		timeLeft = time + 1;
+		timeLeft = countdownTime + 1;
 	}
 	
 	// Update is called once per frame
@@ -49,5 +49,14 @@ public class CountdownScript : MonoBehaviour {
 		string minuteText = minute.ToString("00");
 		string secondText = second.ToString("00");
 		return minuteText + ":" + secondText;
+	}
+
+	public float CountdownTime{
+		get{
+			return countdownTime;
+		}
+		set{
+			countdownTime = value;
+		}
 	}
 }

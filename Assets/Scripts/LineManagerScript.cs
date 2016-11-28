@@ -88,7 +88,7 @@ public class LineManagerScript : MonoBehaviour {
 		int score = 100;
 		int lastScore = score;
 		IEnumerator enumerator = gameManager.ballGenerator.GetAllBalls ();
-		bomb.ForceRetrieved ();
+		bomb.Retrieved ();
 		while (enumerator.MoveNext()) {
 			Transform otherBallTransform = enumerator.Current as Transform;
 			BallScript otherBallScript = otherBallTransform.GetComponent<BallScript> ();
