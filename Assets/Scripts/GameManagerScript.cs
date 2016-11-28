@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Collections;
 
 public class GameManagerScript : MonoBehaviour {
-	public Text readyText; //Text of the ready
-	public Text scoreText; //Text of the ongoing score
+	public ComboTextScript comboText; //Text for combo
+	public ScoreTextScript scoreText; //Text for ongoing score
 	public Text resultScoreText; //Text of score on result pane
 	public CountdownScript countdown; //Game ongoing coundown
 	public StartCountdownScrpt startCountdown; //Countdown before game starts
@@ -20,7 +20,6 @@ public class GameManagerScript : MonoBehaviour {
 	public float raycastWidth = 1.0f; //Width of raycast used for chain
 	public float time;
 	bool isPlaying; //Bool to check if game is playing or not
-	int score = 0; //Score accumulated
 
 	// Use this for initialization
 	void Start () {
@@ -33,14 +32,11 @@ public class GameManagerScript : MonoBehaviour {
 		if (IsPlaying && !ballGenerator.IsRecycling) {
 			if (IsAllBallNotMoving ()) {
 				ballGenerator.DisableBallRigidbodies ();
-				readyText.color = readyColor;
 				hintButton.interactable = true;
 			} else {
-				readyText.color = notReadyColor;
 				hintButton.interactable = false;
 			}
 		} else {
-			readyText.color = notReadyColor;
 			hintButton.interactable = false;
 		}
 	}
@@ -48,8 +44,7 @@ public class GameManagerScript : MonoBehaviour {
 	//Called everytime start countdown needs to be started , GameOver need to be called before this
 	public void StartCountdown(){
 		IsPlaying = false;
-		score = 0;
-		AddScore (0);
+		scoreText.Score = 0;
 		resultPanel.gameObject.SetActive (false);
 		startCountdown.Restart ();
 		startCountdown.gameObject.SetActive (true);
@@ -68,8 +63,7 @@ public class GameManagerScript : MonoBehaviour {
 	//Called when game ends
 	public void GameOver(){
 		IsPlaying = false;
-		Debug.Log (score);
-		resultScoreText.text = score.ToString ("000000");
+		resultScoreText.text = scoreText.Score.ToString ("000000");
 		lineManagerScript.Restart ();
 		lineManagerScript.enabled = false;
 		ballGenerator.RetrieveAllBalls ();
@@ -100,9 +94,13 @@ public class GameManagerScript : MonoBehaviour {
 
 	//Add score and put it into ScoreText
 	public void AddScore(int scoreAdded){
-		score += scoreAdded;
-		string scoreString = score.ToString ("000000");
-		scoreText.text = scoreString;
+		scoreText.Score += scoreAdded;
+	}
+
+
+	//Add 1 combo point
+	public void AddCombo(){
+		comboText.Combo++;
 	}
 
 	public bool IsPlaying{

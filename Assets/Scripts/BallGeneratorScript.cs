@@ -8,6 +8,7 @@ public class BallGeneratorScript : MonoBehaviour {
 	public float ballGenerateTimeInSeconds; //Delay time when ball is generated each time
 	public Transform ballPrefab; //Prefab of balls
 	public float bombProbability; //Prob of a bomb generated
+	public float giantBallProbability; //Prob of a giant ball generated
 	bool isRecycling = false; //Is a ball being recycled
 	protected Dictionary<int, List<BallScript>> ballDictionary; //Balls shall be putted here
 	protected int invokedBalls = 0; //Number of balls invoked
@@ -79,12 +80,16 @@ public class BallGeneratorScript : MonoBehaviour {
 			instantiatePosition.y += Random.Range (0.0f, 10.0f);
 			instantiatePosition.x += Random.Range (-2.0f, 2.0f);
 			ball.transform.position = instantiatePosition;
+			ball.gameObject.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 			int ballIndex = -1;
-			float bombProb = Random.Range (0.0f, 1.0f);
-			if (bombProb < bombProbability) {
+			float randomNumber = Random.Range (0.0f, 1.0f);
+			if (randomNumber < bombProbability) {
 				ballIndex = BallScript.Constants.bombIndex;
 				ball.Initiate (ballIndex, gameManager.bombSprite);
 			} else {
+				if (randomNumber < giantBallProbability + bombProbability) {
+					ball.gameObject.transform.localScale = new Vector3 (2.0f, 2.0f, 2.0f);
+				}
 				ballIndex = Random.Range (0, gameManager.sprites.Length);
 				if (!ballDictionary.ContainsKey (ballIndex)) {
 					ballDictionary.Add (ballIndex, new List<BallScript> ());
@@ -106,12 +111,16 @@ public class BallGeneratorScript : MonoBehaviour {
 		GameObject ballObject = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
 		BallScript ball = ballObject.GetComponent<BallScript> ();
 		ball.Id = invokedBalls;
+		ballObject.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 		int ballIndex = -1;
-		float bombProb = Random.Range (0.0f, 1.0f);
-		if (bombProb < bombProbability) {
+		float randomNumber = Random.Range (0.0f, 1.0f);
+		if (randomNumber < bombProbability) {
 			ballIndex = BallScript.Constants.bombIndex;
 			ball.Initiate (ballIndex, gameManager.bombSprite);
 		} else {
+			if (randomNumber < giantBallProbability) {
+				ballObject.transform.localScale = new Vector3 (2.0f, 2.0f, 2.0f);
+			}
 			ballIndex = Random.Range (0, gameManager.sprites.Length);
 			if (!ballDictionary.ContainsKey (ballIndex)) {
 				ballDictionary.Add (ballIndex, new List<BallScript> ());

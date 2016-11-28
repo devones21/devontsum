@@ -197,19 +197,10 @@ public class BallScript : MonoBehaviour {
 
 	//Recycle the ball
 	private IEnumerator Recycle(float delayTime){
-		if (this.Index == Constants.bombIndex) {
-			Debug.Log ("Recycling Bomb 1");
-		}
 		yield return new WaitForSeconds(delayTime);
-		if (this.Index == Constants.bombIndex) {
-			Debug.Log ("Recycling Bomb 2");
-		}
 		GameObject ballGeneratorObject = GameObject.Find ("BallGenerator");
 		GameObject gameManagerObject = GameObject.Find ("GameManager");
 		if (ballGeneratorObject != null && gameManagerObject  != null) {
-			if (this.Index == Constants.bombIndex) {
-				Debug.Log ("Recycling Bomb 3");
-			}
 			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
 			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
 			if(index != Constants.bombIndex) ballGenerator.GetBallsBasedOnIndex (index).Remove (this);

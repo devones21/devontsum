@@ -19,14 +19,26 @@ public class LineManagerScript : MonoBehaviour {
 	}
 
 	void Update() {
-		if (Input.GetMouseButton (0)) {
+		if (Input.GetMouseButtonDown (0)) {
 			if (gameManager.IsAllBallNotMoving ()) {
 				BallScript ball = GetBallTouched ();
 				if (ball != null) {
 					if (chosenIndex == -1) {
 						if (ball.Index == BallScript.Constants.bombIndex) {
-							ExplodeBomb(ball);
-						} else {
+							ExplodeBomb (ball);
+						}
+					}
+				}
+			} else {
+				Restart ();
+			}
+		}
+		else if (Input.GetMouseButton (0)) {
+			if (gameManager.IsAllBallNotMoving ()) {
+				BallScript ball = GetBallTouched ();
+				if (ball != null) {
+					if (chosenIndex == -1) {
+						if (ball.Index != BallScript.Constants.bombIndex) {
 							chosenIndex = ball.Index;
 							AddBall (ball);
 						}
@@ -77,6 +89,7 @@ public class LineManagerScript : MonoBehaviour {
 				lastScore = score - lastScore;
 			}
 		}
+		gameManager.AddCombo ();
 		Restart ();
 	}
 
@@ -106,6 +119,8 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			}
 		}
+
+		gameManager.AddCombo ();
 	}
 
 	//Cancel last action
