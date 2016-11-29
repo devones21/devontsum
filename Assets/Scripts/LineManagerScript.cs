@@ -52,8 +52,18 @@ public class LineManagerScript : MonoBehaviour {
 							chosenIndex = ball.Index;
 							AddBall (ball);
 						}
+					} else if(chainedBalls.Contains(ball)){
+						if (chainedBalls.Count >= 2) {
+							BallScript previousBall = chainedBalls [chainedBalls.Count - 2];
+							if (previousBall != null && previousBall == ball) {
+								BallScript lastBall = chainedBalls [chainedBalls.Count - 1];
+								chainedBalls.Remove (lastBall);
+								lastBall.Selectable ();
+								DrawRealLines (chainedBalls);
+							}
+						}
 					} else if (ball.Index == chosenIndex
-					   && !chainedBalls.Contains (ball)
+						&& !chainedBalls.Contains(ball)
 					   && IsThisBallChainable (chainedBalls, chainedBalls [chainedBalls.Count - 1], ball)) {
 						IEnumerator enumerator = hintBalls.GetEnumerator ();
 						while (enumerator.MoveNext ()) {
@@ -161,12 +171,14 @@ public class LineManagerScript : MonoBehaviour {
 
 	//Chain a ball
 	public void AddBall(BallScript ball){
-		if (GetChainableBalls (ball, chainedBalls, false).Count > 0) {
+		if (GetChainableBalls (ball, chainedBalls).Count > 0) {
 			hintBalls = new List<BallScript> ();
 			hintBalls = RecursiveFunctionToGetBestPath (ball, new List<BallScript>(chainedBalls));
 			//DrawLines (hintBalls);
 			foreach(BallScript selectableBall in hintBalls){
-				if(ball != selectableBall)selectableBall.Selectable ();
+				if (ball != selectableBall && !chainedBalls.Contains(selectableBall)) {
+					selectableBall.Selectable ();
+				}
 			}
 		}
 		chainedBalls.Add (ball);
@@ -240,7 +252,7 @@ public class LineManagerScript : MonoBehaviour {
 	}
 
 	//Get balls that can be chained from a ball position
-	List<BallScript> GetChainableBalls(BallScript ball, List<BallScript> list, bool isSelectable){
+	List<BallScript> GetChainableBalls(BallScript ball, List<BallScript> list){
 		List<BallScript> result = new List<BallScript> ();
 		if (ball.index != BallScript.Constants.bombIndex) {
 			IEnumerator enumerator = gameManager.ballGenerator.GetBallsBasedOnIndex (ball.Index).GetEnumerator ();
@@ -251,9 +263,6 @@ public class LineManagerScript : MonoBehaviour {
 					   && ball.Index == checkedBall.Index
 					   && IsThisBallChainable (list, ball, checkedBall)) {
 						result.Add (checkedBall);
-						if (isSelectable) {
-							checkedBall.Selectable ();
-						}
 					}
 				}
 			}
@@ -308,7 +317,7 @@ public class LineManagerScript : MonoBehaviour {
 		}
 		if (!result.Contains (ball)) {
 			result.Add (ball);
-			List<BallScript> chainableBalls = GetChainableBalls (ball, result, false);
+			List<BallScript> chainableBalls = GetChainableBalls (ball, result);
 			if (chainableBalls.Count > 0) {
 				IEnumerator enumerator = chainableBalls.GetEnumerator ();
 				while (enumerator.MoveNext ()) {

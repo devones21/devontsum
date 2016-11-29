@@ -116,6 +116,7 @@ public class BallGeneratorScript : MonoBehaviour {
 		instantiatePosition.y += Random.Range(0.0f, 10.0f);
 		instantiatePosition.x += Random.Range(-2.0f, 2.0f);
 		GameObject ballObject = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
+		ballObject.name = "Ball" + invokedBalls.ToString ();
 		BallScript ball = ballObject.GetComponent<BallScript> ();
 		ball.Id = invokedBalls;
 
