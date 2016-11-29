@@ -29,59 +29,51 @@ public class LineManagerScript : MonoBehaviour {
 	}
 
 	void Update() {
+
+		DrawRealLines (chainedBalls);
 		if (Input.GetMouseButtonDown (0)) {
-			if (gameManager.IsAllBallNotMoving ()) {
-				BallScript ball = GetBallTouched ();
-				if (ball != null) {
-					if (!IsChaining()) {
-						if (ball.Index == BallScript.Constants.bombIndex) {
-							ExplodeBomb (ball);
-						}
+			BallScript ball = GetBallTouched ();
+			if (ball != null) {
+				if (!IsChaining()) {
+					if (ball.Index == BallScript.Constants.bombIndex) {
+						ExplodeBomb (ball);
 					}
 				}
-			} else {
-				Restart ();
 			}
 		}
 		else if (Input.GetMouseButton (0)) {
-			if (gameManager.IsAllBallNotMoving ()) {
-				BallScript ball = GetBallTouched ();
-				if (ball != null) {
-					if (!IsChaining()) {
-						if (ball.Index != BallScript.Constants.bombIndex) {
-							chosenIndex = ball.Index;
-							AddBall (ball);
-						}
-					} else if(chainedBalls.Contains(ball)){
-						if (chainedBalls.Count >= 2) {
-							BallScript previousBall = chainedBalls [chainedBalls.Count - 2];
-							if (previousBall != null && previousBall == ball) {
-								BallScript lastBall = chainedBalls [chainedBalls.Count - 1];
-								chainedBalls.Remove (lastBall);
-								lastBall.Selectable ();
-								DrawRealLines (chainedBalls);
-							}
-						}
-					} else if (ball.Index == chosenIndex
-						&& !chainedBalls.Contains(ball)
-					   && IsThisBallChainable (chainedBalls, chainedBalls [chainedBalls.Count - 1], ball)) {
-						IEnumerator enumerator = hintBalls.GetEnumerator ();
-						while (enumerator.MoveNext ()) {
-							BallScript chainableBall = enumerator.Current as BallScript;
-							if (chainableBall.GetInstanceID () != ball.GetInstanceID () && !chainedBalls.Contains (chainableBall)) {
-								chainableBall.Idle ();
-							}
-						}
+			BallScript ball = GetBallTouched ();
+			if (ball != null) {
+				if (!IsChaining()) {
+					if (ball.Index != BallScript.Constants.bombIndex) {
+						chosenIndex = ball.Index;
 						AddBall (ball);
 					}
+				} else if(chainedBalls.Contains(ball)){
+					if (chainedBalls.Count >= 2) {
+						BallScript previousBall = chainedBalls [chainedBalls.Count - 2];
+						if (previousBall != null && previousBall == ball) {
+							BallScript lastBall = chainedBalls [chainedBalls.Count - 1];
+							chainedBalls.Remove (lastBall);
+							lastBall.Selectable ();
+						}
+					}
+				} else if (ball.Index == chosenIndex
+					&& !chainedBalls.Contains(ball)
+				   && IsThisBallChainable (chainedBalls, chainedBalls [chainedBalls.Count - 1], ball)) {
+					IEnumerator enumerator = hintBalls.GetEnumerator ();
+					while (enumerator.MoveNext ()) {
+						BallScript chainableBall = enumerator.Current as BallScript;
+						if (chainableBall.GetInstanceID () != ball.GetInstanceID () && !chainedBalls.Contains (chainableBall)) {
+							chainableBall.Idle ();
+						}
+					}
+					AddBall (ball);
 				}
-			} 
-			else {
-				Restart ();
 			}
 		}
 		else if (Input.GetMouseButtonUp (0)) {
-			if (gameManager.IsAllBallNotMoving () && IsChaining()) {
+			if (IsChaining()) {
 				if (chainedBalls.Count >= 3) {
 					RetrieveBalls ();
 					gameManager.ballGenerator.EnableBallRigidbodies ();
@@ -94,6 +86,8 @@ public class LineManagerScript : MonoBehaviour {
 			Restart ();
 		}
 	}
+
+	// Is there a chained ball currently
 
 	public bool IsChaining(){
 		return chosenIndex != -1;
@@ -165,7 +159,6 @@ public class LineManagerScript : MonoBehaviour {
 		chosenIndex = -1;
 		if (chainedBalls != null) {
 			chainedBalls.Clear ();
-			DrawRealLines (chainedBalls);
 		}
 	}
 
@@ -183,7 +176,6 @@ public class LineManagerScript : MonoBehaviour {
 		}
 		chainedBalls.Add (ball);
 		ball.Selected ();
-		DrawRealLines (chainedBalls);
 	}
 
 	//Draw lines to a group of balls

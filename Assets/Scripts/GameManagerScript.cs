@@ -20,6 +20,10 @@ public class GameManagerScript : MonoBehaviour {
 	public float time; //Game time length
 	public float hintTime; //Auto hint time
 	public int minChainForBomb = 7; //Min of ball need to be chained to make a bomb
+	public Transform explosionPoint;
+	public float explosionRadius;
+	public float explosionPower;
+	public LayerMask ballLayer;
 	bool isPlaying; //Bool to check if game is playing or not
 	float hintTimeLeft; //Auto hint time left
 
@@ -29,6 +33,15 @@ public class GameManagerScript : MonoBehaviour {
 		}
 		set{
 			hintTimeLeft = value;
+		}
+	}
+
+	public bool IsPlaying{
+		get{
+			return isPlaying;
+		}
+		set{
+			isPlaying = value;
 		}
 	}
 
@@ -111,14 +124,14 @@ public class GameManagerScript : MonoBehaviour {
 
 	//Check if all balls is moving or not
 	public bool IsAllBallNotMoving(){
-//		IEnumerator enumerator = ballGenerator.GetAllBalls();
-//		while(enumerator.MoveNext ()){
-//			Transform child = enumerator.Current as Transform;
-//			BallScript ball = child.GetComponent<BallScript>();
-//			if(ball.IsMoving()){
-//				return false;
-//			}
-//		};
+		IEnumerator enumerator = ballGenerator.GetAllBalls();
+		while(enumerator.MoveNext ()){
+			Transform child = enumerator.Current as Transform;
+			BallScript ball = child.GetComponent<BallScript>();
+			if(ball.IsMoving()){
+				return false;
+			}
+		};
 		return true;
 	}
 
@@ -133,12 +146,24 @@ public class GameManagerScript : MonoBehaviour {
 		comboText.Combo++;
 	}
 
-	public bool IsPlaying{
-		get{
-			return isPlaying;
+	//Shake the balls
+	public void Shake(){
+		Vector2 explosionPos = new Vector2 (explosionPoint.transform.position.x, explosionPoint.transform.position.y);
+		Collider2D[] colliders = Physics2D.OverlapCircleAll(explosionPos, explosionRadius, ballLayer);
+		Debug.Log ("Shake: " + colliders.Length);
+		foreach (Collider2D hit in colliders) {
+			Rigidbody2D rb = hit.GetComponent<Rigidbody2D>();
+			rb.AddForce(Vector2.up * explosionPower);
+
 		}
-		set{
-			isPlaying = value;
+	}
+
+	//Pause the game
+	public void Pause(){
+		if (Time.timeScale > 0.0f) {
+			Time.timeScale = 0.0f;
+		} else {
+			Time.timeScale = 1.0f;
 		}
 	}
 }
