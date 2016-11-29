@@ -10,6 +10,16 @@ public class LineManagerScript : MonoBehaviour {
 	List<BallScript> chainedBalls; //Currently chained balls
 	List<BallScript> hintBalls; //Possible balls that can be chained from current chained ball
 	int chosenIndex = -1; //Currently chosen balls index
+	int minChainForBomb = 7; //Min of ball need to be chained to make a bomb
+
+	public int MinChainForBomb{
+		get{
+			return minChainForBomb;
+		}
+		set{
+			minChainForBomb = value;
+		}
+	}
 
 	void Start(){
 		realLineRenderer = transform.FindChild("RealLine").GetComponent<LineRenderer> ();
@@ -79,11 +89,22 @@ public class LineManagerScript : MonoBehaviour {
 	public void RetrieveBalls(){
 		int score = 100;
 		int lastScore = score;
+
+		BallScript lastBall = chainedBalls[chainedBalls.Count - 1];
 		IEnumerator enumerator = chainedBalls.GetEnumerator ();
 		while(enumerator.MoveNext()){
 			BallScript ballScript = enumerator.Current as BallScript;
 			if (ballScript != null) {
-				ballScript.RetrievedAddScore (score);
+				if (chainedBalls.Count >= minChainForBomb) {
+					if (ballScript != lastBall)
+						ballScript.RetrievedAndShowScore (score);
+					else {
+						ballScript.RecycleToBomb ();
+						ballScript.ShowScore (score);
+					}
+				} else {
+					ballScript.RetrievedAndShowScore (score);
+				}
 				gameManager.AddScore (score);
 				score += lastScore;
 				lastScore = score - lastScore;
@@ -107,11 +128,11 @@ public class LineManagerScript : MonoBehaviour {
 			BallScript otherBallScript = otherBallTransform.GetComponent<BallScript> ();
 			if (bomb.gameObject != otherBallTransform.gameObject) {
 				float distance = Vector3.Distance (bombPositon, otherBallTransform.transform.position);
-				if (distance < 2.0f) {
-					if (otherBallScript.Index == BallScript.Constants.bombIndex) {
-						if(!otherBallScript.BombParticle.isPlaying) ExplodeBomb (otherBallScript);
-					} else {
-						otherBallScript.RetrievedAddScore (score);
+				if (distance < 1.0f) {
+					if (otherBallScript.Index != BallScript.Constants.bombIndex) {
+//						if(!otherBallScript.BombParticle.isPlaying) ExplodeBomb (otherBallScript);
+//					} else {
+						otherBallScript.RetrievedAndShowScore (score);
 						gameManager.AddScore (score);
 						score += lastScore;
 						lastScore = score - lastScore;

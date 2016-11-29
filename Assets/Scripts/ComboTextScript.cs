@@ -13,6 +13,7 @@ public class ComboTextScript : MonoBehaviour {
 	{
 		public const string triggerCombo = "triggerCombo";
 		public const string comboAnimation = "ComboText_Combo";
+		public const string idleAnimation = "ComboText_Idle";
 	}
 
 	public int Combo
@@ -40,8 +41,16 @@ public class ComboTextScript : MonoBehaviour {
 		}
 	}
 
+	public void Idle(){
+		SwitchAnimationToIdle ();
+	}
+
 	void SwitchAnimationToCombo(){
 		animator.Play(Constants.comboAnimation, -1, 0f);
+	}
+
+	void SwitchAnimationToIdle(){
+		animator.Play(Constants.idleAnimation, -1, 0f);
 	}
 
 	void SetCombo(int combo){

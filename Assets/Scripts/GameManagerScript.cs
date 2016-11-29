@@ -14,16 +14,18 @@ public class GameManagerScript : MonoBehaviour {
 	public Color readyColor; //Color of text when game is ready to be played
 	public Color notReadyColor; //Color of text when game is not ready to be played
 	public Sprite[] sprites; //Sprites of the balls
-	public Sprite bombSprite;
+	public Sprite bombSprite; //Sprite for bomb
 	public BallGeneratorScript ballGenerator; //Ball Generator is needed to get the balls and their conditions
 	public LineManagerScript lineManagerScript; //Line Manager that manage user interface
 	public float raycastWidth = 1.0f; //Width of raycast used for chain
-	public float time;
+	public float time; //Game time length
+	public int minChainForBomb = 7; //Min of ball need to be chained to make a bomb
 	bool isPlaying; //Bool to check if game is playing or not
 
 	// Use this for initialization
 	void Start () {
 		countdown.CountdownTime = time;
+		lineManagerScript.MinChainForBomb = minChainForBomb;
 		StartCountdown ();
 	}
 
@@ -66,6 +68,10 @@ public class GameManagerScript : MonoBehaviour {
 		resultScoreText.text = scoreText.Score.ToString ("000000");
 		lineManagerScript.Restart ();
 		lineManagerScript.enabled = false;
+		comboText.Idle ();
+		comboText.Combo = 0;
+		scoreText.Idle ();
+		scoreText.Score = 0;
 		ballGenerator.RetrieveAllBalls ();
 		resultPanel.gameObject.SetActive (true);
 	}

@@ -22,11 +22,20 @@ public class ScoreTextScript : MonoBehaviour {
 	{
 		public const string triggerScoreAdded = "triggerScoreAdded";
 		public const string scoreAddedAnimation = "ScoreText_ScoreAdded";
+		public const string idleAnimation = "ScoreText_Idle";
 	}
 
 	void Start(){
 		animator = GetComponent<Animator> ();
 		scoreText = GetComponent<Text> ();
+	}
+
+	public void Idle(){
+		SwitchAnimationToIdle ();
+	}
+
+	void SwitchAnimationToIdle(){
+		animator.Play(Constants.idleAnimation, -1, 0f);
 	}
 
 	void SwitchAnimationToScoreAdded(){
@@ -43,6 +52,9 @@ public class ScoreTextScript : MonoBehaviour {
 			}
 		}
 		string scoreString = score.ToString ("0000000");
+		if (scoreText == null) {
+			scoreText = GetComponent<Text> ();
+		}
 		scoreText.text = scoreString;
 	}
 }

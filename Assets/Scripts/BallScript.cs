@@ -78,6 +78,22 @@ public class BallScript : MonoBehaviour {
 		else StartCoroutine(Recycle (animator.GetCurrentAnimatorStateInfo(0).length));
 	}
 
+	//Retrieve and add score
+	public void RetrievedAndShowScore(int score){
+		SwitchAnimationToRetrieved ();
+		ShowScore (score);
+		StartCoroutine(Recycle (animator.GetCurrentAnimatorStateInfo(0).length));
+	}
+
+	//Show Score
+	public void ShowScore(int score){
+		Vector3 position = transform.position;
+		position.z -= 1;
+		Transform scoreText = Instantiate (scorePrefab, position, Quaternion.identity) as Transform;
+		scoreText.GetComponent<ScoreEffectScript> ().SetScore (score);
+		Destroy (scoreText.gameObject, animator.GetCurrentAnimatorStateInfo (0).length);
+	}
+
 	//Enter Chainable condition
 	public void Selectable(){
 		SwitchAnimationToSelectable ();
@@ -183,18 +199,6 @@ public class BallScript : MonoBehaviour {
 		}
 	}
 
-	//Retrieve and add score
-	public float RetrievedAddScore(int score){
-		SwitchAnimationToRetrieved ();
-		Vector3 position = transform.position;
-		position.z -= 1;
-		Transform scoreText = Instantiate (scorePrefab, position, Quaternion.identity) as Transform;
-		scoreText.GetComponent<ScoreEffectScript> ().SetScore (score);
-		Destroy (scoreText.gameObject, animator.GetCurrentAnimatorStateInfo (0).length);
-		StartCoroutine(Recycle (animator.GetCurrentAnimatorStateInfo(0).length));
-		return animator.GetCurrentAnimatorStateInfo (0).length;
-	}
-
 	//Recycle the ball
 	private IEnumerator Recycle(float delayTime){
 		yield return new WaitForSeconds(delayTime);
@@ -223,13 +227,19 @@ public class BallScript : MonoBehaviour {
 			if (index != Constants.bombIndex) {
 				ballGenerator.GetBallsBasedOnIndex (index).Remove (this);
 			}
-			else {
-			}
+		}
+	}
 
-			if (gameManager.IsPlaying) {
-				ballGenerator.RecycleBall (this);
-				ballGenerator.IsRecycling = false;
-			}
+	public void RecycleToBomb(){
+		GameObject gameManagerObject = GameObject.Find ("GameManager");
+		if (gameManagerObject != null) {
+			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
+			ForceRecycle ();
+			ForceIdle ();
+			ballParticle.startColor = Color.white;
+			ballParticle.Play ();
+
+			Initiate (Constants.bombIndex, gameManager.bombSprite);
 		}
 	}
 
