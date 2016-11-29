@@ -220,9 +220,7 @@ public class BallScript : MonoBehaviour {
 	//Recycle the bomb
 	private void ForceRecycle(){
 		GameObject ballGeneratorObject = GameObject.Find ("BallGenerator");
-		GameObject gameManagerObject = GameObject.Find ("GameManager");
-		if (ballGeneratorObject != null && gameManagerObject  != null) {
-			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
+		if (ballGeneratorObject != null) {
 			BallGeneratorScript ballGenerator = ballGeneratorObject.GetComponent<BallGeneratorScript> ();
 			if (index != Constants.bombIndex) {
 				ballGenerator.GetBallsBasedOnIndex (index).Remove (this);

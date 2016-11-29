@@ -33,7 +33,7 @@ public class LineManagerScript : MonoBehaviour {
 			if (gameManager.IsAllBallNotMoving ()) {
 				BallScript ball = GetBallTouched ();
 				if (ball != null) {
-					if (chosenIndex == -1) {
+					if (!IsChaining()) {
 						if (ball.Index == BallScript.Constants.bombIndex) {
 							ExplodeBomb (ball);
 						}
@@ -47,7 +47,7 @@ public class LineManagerScript : MonoBehaviour {
 			if (gameManager.IsAllBallNotMoving ()) {
 				BallScript ball = GetBallTouched ();
 				if (ball != null) {
-					if (chosenIndex == -1) {
+					if (!IsChaining()) {
 						if (ball.Index != BallScript.Constants.bombIndex) {
 							chosenIndex = ball.Index;
 							AddBall (ball);
@@ -71,7 +71,7 @@ public class LineManagerScript : MonoBehaviour {
 			}
 		}
 		else if (Input.GetMouseButtonUp (0)) {
-			if (gameManager.IsAllBallNotMoving () && chosenIndex != -1) {
+			if (gameManager.IsAllBallNotMoving () && IsChaining()) {
 				if (chainedBalls.Count >= 3) {
 					RetrieveBalls ();
 					gameManager.ballGenerator.EnableBallRigidbodies ();
@@ -83,6 +83,10 @@ public class LineManagerScript : MonoBehaviour {
 		if (Input.GetMouseButtonDown (1)) {
 			Restart ();
 		}
+	}
+
+	public bool IsChaining(){
+		return chosenIndex != -1;
 	}
 
 	//Retreive currently chained balls
@@ -110,6 +114,7 @@ public class LineManagerScript : MonoBehaviour {
 				lastScore = score - lastScore;
 			}
 		}
+		gameManager.ResetHintCountdown ();
 		gameManager.AddCombo ();
 		Restart ();
 	}
@@ -128,7 +133,7 @@ public class LineManagerScript : MonoBehaviour {
 			BallScript otherBallScript = otherBallTransform.GetComponent<BallScript> ();
 			if (bomb.gameObject != otherBallTransform.gameObject) {
 				float distance = Vector3.Distance (bombPositon, otherBallTransform.transform.position);
-				if (distance < 1.0f) {
+				if (distance < 1.0f * bomb.transform.localScale.x) {
 					if (otherBallScript.Index != BallScript.Constants.bombIndex) {
 //						if(!otherBallScript.BombParticle.isPlaying) ExplodeBomb (otherBallScript);
 //					} else {
@@ -140,7 +145,7 @@ public class LineManagerScript : MonoBehaviour {
 				}
 			}
 		}
-
+		gameManager.ResetHintCountdown ();
 		gameManager.AddCombo ();
 	}
 
