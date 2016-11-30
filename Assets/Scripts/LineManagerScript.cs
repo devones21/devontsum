@@ -145,7 +145,7 @@ public class LineManagerScript : MonoBehaviour {
 			BallScript otherBallScript = otherBallTransform.GetComponent<BallScript> ();
 			if (bomb.gameObject != otherBallTransform.gameObject) {
 				float distance = Vector3.Distance (bombPositon, otherBallTransform.transform.position);
-				if (distance < 1.0f * bomb.transform.localScale.x) {
+				if (distance < 1.5f * bomb.transform.localScale.x) {
 					if (otherBallScript.Index != BallScript.Constants.bombIndex) {
 //						if(!otherBallScript.BombParticle.isPlaying) ExplodeBomb (otherBallScript);
 //					} else {
