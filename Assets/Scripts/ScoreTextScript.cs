@@ -30,14 +30,16 @@ public class ScoreTextScript : MonoBehaviour {
 		scoreText = GetComponent<Text> ();
 	}
 
+	//Idle contion
 	public void Idle(){
 		SwitchAnimationToIdle ();
 	}
-
+	//Switch animation to Idle
 	void SwitchAnimationToIdle(){
 		animator.Play(Constants.idleAnimation, -1, 0f);
 	}
 
+	//Switch animation to Score Added
 	void SwitchAnimationToScoreAdded(){
 		animator.SetTrigger (Constants.triggerScoreAdded);
 	}

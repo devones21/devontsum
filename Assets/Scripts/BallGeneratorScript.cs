@@ -158,27 +158,6 @@ public class BallGeneratorScript : MonoBehaviour {
 		}
 	}
 
-	public void DisableBallRigidbodies(){
-//		if (isRecycling == false) {
-//			IEnumerator enumerator = GetAllBalls ();
-//			while (enumerator.MoveNext ()) {
-//				Transform ballTransform = enumerator.Current as Transform;
-//				BallScript ball = ballTransform.GetComponent<BallScript> ();
-//				ball.DisableRigidbody ();
-//			}
-//		}
-	}
-
-	public void EnableBallRigidbodies(){
-//		isRecycling = true;
-//		IEnumerator enumerator = GetAllBalls ();
-//		while (enumerator.MoveNext ()) {
-//			Transform ballTransform = enumerator.Current as Transform;
-//			BallScript ball = ballTransform.GetComponent<BallScript> ();
-//			ball.EnableRigidbody ();
-//		}
-	}
-
 	public int InvokedBalls{
 		get{
 			return invokedBalls;

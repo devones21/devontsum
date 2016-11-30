@@ -83,7 +83,6 @@ public class LineManagerScript : MonoBehaviour {
 				if (IsChaining ()) {
 					if (chainedBalls.Count >= 3) {
 						RetrieveBalls ();
-						gameManager.ballGenerator.EnableBallRigidbodies ();
 					} else {
 						Restart ();
 					}
@@ -96,7 +95,6 @@ public class LineManagerScript : MonoBehaviour {
 	}
 
 	// Is there a chained ball currently
-
 	public bool IsChaining(){
 		return chosenIndex != -1;
 	}
@@ -132,6 +130,7 @@ public class LineManagerScript : MonoBehaviour {
 		Restart ();
 	}
 
+	//Explode Bomb
 	public void ExplodeBomb(BallScript bomb){
 		if (bomb.index != BallScript.Constants.bombIndex) {
 			return;
@@ -198,10 +197,10 @@ public class LineManagerScript : MonoBehaviour {
 					ballPositions [i].z = 0;
 				}
 				//ballPositions = Generate_Points (ballPositions, 100);
-				realLineRenderer.SetVertexCount (ballPositions.Length);
+				realLineRenderer.numPositions = ballPositions.Length;
 				realLineRenderer.SetPositions (ballPositions);
 			} else {
-				realLineRenderer.SetVertexCount (0);
+				realLineRenderer.numPositions = 0;
 			}
 		}
 	}
@@ -216,12 +215,12 @@ public class LineManagerScript : MonoBehaviour {
 					ballPositions [i].z = 0;
 				}
 				//ballPositions = Generate_Points (ballPositions, 100);
-				hintLineRenderer.SetVertexCount (ballPositions.Length);
+				hintLineRenderer.numPositions = ballPositions.Length;
 				hintLineRenderer.SetPositions (ballPositions);
 				StartCoroutine (DrawHintLines (null));
 			} else {
 				yield return new WaitForSeconds (1.0f);
-				hintLineRenderer.SetVertexCount (0);
+				hintLineRenderer.numPositions = 0;
 			}
 		}
 	}

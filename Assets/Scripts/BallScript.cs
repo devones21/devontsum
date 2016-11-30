@@ -5,7 +5,6 @@ public class BallScript : MonoBehaviour {
 	public Transform scorePrefab;
 	public int index;
 	int id;
-	Sprite sprite;
 	Animator animator;
 	Rigidbody2D theRigidbody;
 	ParticleSystem ballParticle;
@@ -72,7 +71,7 @@ public class BallScript : MonoBehaviour {
 			if (bombParticle.gameObject != null && bombParticle != null) {
 				//bombParticle.transform.parent = transform.parent.parent;
 				bombParticle.Play ();
-				StartCoroutine(Recycle (bombParticle.duration));
+				StartCoroutine(Recycle (bombParticle.main.duration));
 			}
 		}
 		else StartCoroutine(Recycle (animator.GetCurrentAnimatorStateInfo(0).length));
@@ -157,7 +156,6 @@ public class BallScript : MonoBehaviour {
 	//Initiate/Restart ball
 	public void Initiate(int index, Sprite sprite){
 		this.index = index;
-		this.sprite = sprite;
 
 		if (ballParticle == null) {
 			ballParticle = transform.FindChild ("RetrievedParticle").GetComponent<ParticleSystem> ();
@@ -166,21 +164,23 @@ public class BallScript : MonoBehaviour {
 		SpriteRenderer ballSpriteRenderer = transform.GetComponentsInChildren<SpriteRenderer>()[0];
 		if (ballSpriteRenderer != null) {
 			ballSpriteRenderer.sprite = sprite;
+
+			ParticleSystem.MainModule particleMain = ballParticle.main;
 			switch (index) {
 			case Constants.blueIndex:
-				ballParticle.startColor = Color.blue;
+				particleMain.startColor = Color.blue;
 				break;
 			case Constants.greenIndex:
-				ballParticle.startColor = Color.green;
+				particleMain.startColor = Color.green;
 				break;
 			case Constants.purpleIndex:
-				ballParticle.startColor = Color.magenta;
+				particleMain.startColor = Color.magenta;
 				break;
 			case Constants.redIndex:
-				ballParticle.startColor = Color.red;
+				particleMain.startColor = Color.red;
 				break;
 			case Constants.yellowIndex:
-				ballParticle.startColor = Color.yellow;
+				particleMain.startColor = Color.yellow;
 				break;
 			}
 		}
@@ -234,7 +234,8 @@ public class BallScript : MonoBehaviour {
 			GameManagerScript gameManager = gameManagerObject.GetComponent<GameManagerScript>();
 			ForceRecycle ();
 			ForceIdle ();
-			ballParticle.startColor = Color.white;
+			ParticleSystem.MainModule particleMain = ballParticle.main;
+			particleMain.startColor = Color.white;
 			ballParticle.Play ();
 
 			Initiate (Constants.bombIndex, gameManager.bombSprite);

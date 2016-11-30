@@ -3,10 +3,10 @@ using UnityEngine.UI;
 using System.Collections;
 
 public class ComboTextScript : MonoBehaviour {
-	Animator animator;
-	int combo = 0;
-	Text comboText;
-	bool isCombo = false;
+	Animator animator; //Animator of text
+	int combo = 0; //Total combo
+	Text comboText; //Text object
+	bool isCombo = false; //Is currently comboing
 
 	//Constants for animations
 	public static class Constants
