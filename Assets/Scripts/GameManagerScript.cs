@@ -49,6 +49,7 @@ public class GameManagerScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		Screen.fullScreen = false;
 		shakeButton = GameObject.Find ("ShakeButton").GetComponent<Button> ();
 		pauseButton = GameObject.Find ("PauseButton").GetComponent<Button> ();
 		countdown.CountdownTime = time;
