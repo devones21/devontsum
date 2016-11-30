@@ -196,7 +196,7 @@ public class LineManagerScript : MonoBehaviour {
 					ballPositions [i] = list [i].transform.position;
 					ballPositions [i].z = 0;
 				}
-				ballPositions = Generate_Points (ballPositions, 100);
+				//ballPositions = Generate_Points (ballPositions, 100);
 				realLineRenderer.SetVertexCount (ballPositions.Length);
 				realLineRenderer.SetPositions (ballPositions);
 			} else {
@@ -214,7 +214,7 @@ public class LineManagerScript : MonoBehaviour {
 					ballPositions [i] = list [i].transform.position;
 					ballPositions [i].z = 0;
 				}
-				ballPositions = Generate_Points (ballPositions, 100);
+				//ballPositions = Generate_Points (ballPositions, 100);
 				hintLineRenderer.SetVertexCount (ballPositions.Length);
 				hintLineRenderer.SetPositions (ballPositions);
 				StartCoroutine (DrawHintLines (null));

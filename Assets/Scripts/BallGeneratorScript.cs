@@ -6,7 +6,7 @@ public class BallGeneratorScript : MonoBehaviour {
 	public GameManagerScript gameManager; //Game Manager that is working right now
 	public int totalBallsGenerated; //Total number of balls that is goinf to be generated
 	public float ballGenerateTimeInSeconds; //Delay time when ball is generated each time
-	public Transform ballPrefab; //Prefab of balls
+	public GameObject ballPrefab; //Prefab of balls
 	public float bombProbability; //Prob of a bomb generated
 	public float giantBallProbability; //Prob of a giant ball generated
 	bool isRecycling = false; //Is a ball being recycled
@@ -115,7 +115,7 @@ public class BallGeneratorScript : MonoBehaviour {
 		Vector3 instantiatePosition = transform.position;
 		instantiatePosition.y += Random.Range(0.0f, 10.0f);
 		instantiatePosition.x += Random.Range(-2.0f, 2.0f);
-		GameObject ballObject = Instantiate (ballPrefab,instantiatePosition, transform.rotation) as GameObject;
+		GameObject ballObject = Instantiate (ballPrefab, instantiatePosition, transform.rotation);
 		ballObject.name = "Ball" + invokedBalls.ToString ();
 		BallScript ball = ballObject.GetComponent<BallScript> ();
 		ball.Id = invokedBalls;
