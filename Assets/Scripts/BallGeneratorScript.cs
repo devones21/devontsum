@@ -140,7 +140,7 @@ public class BallGeneratorScript : MonoBehaviour {
 			ball.Initiate (ballIndex, gameManager.sprites[ballIndex]);
 			ballDictionary [ballIndex].Add (ball);
 		}
-		ball.transform.parent = transform;
+		ball.transform.SetParent(transform);
 		invokedBalls++;
 	}
 

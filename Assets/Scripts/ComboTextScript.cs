@@ -54,18 +54,18 @@ public class ComboTextScript : MonoBehaviour {
 	}
 
 	void SetCombo(int combo){
-		if (!isCombo) {
-			//if idle restart from 1
-			this.combo = 1;
-		} else {
-			//if not continue combo
-			this.combo = combo;
-		}
-		comboText.text = this.combo.ToString () + " combo";
+		if (combo != 0) {
+			if (!isCombo) {
+				//if idle restart from 1
+				this.combo = 1;
+			} else {
+				//if not continue combo
+				this.combo = combo;
+			}
+			comboText.text = this.combo.ToString () + " combo";
 
-		if (this.combo != 0) {
 			SwitchAnimationToCombo ();
-		} 
-		isCombo = true;
+			isCombo = true;
+		}
 	}
 }

@@ -96,7 +96,6 @@ public class BallScript : MonoBehaviour {
 
 	//Enter Chainable condition
 	public void Selectable(){
-		Debug.Log (gameObject.name + " - Selectable");
 		SwitchAnimationToSelectable ();
 	}
 

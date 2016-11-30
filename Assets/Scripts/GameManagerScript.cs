@@ -20,14 +20,18 @@ public class GameManagerScript : MonoBehaviour {
 	public float time; //Game time length
 	public float hintTime; //Auto hint time
 	public int minChainForBomb = 7; //Min of ball need to be chained to make a bomb
-	public Transform explosionPoint;
-	public float explosionRadius;
-	public float explosionPower;
-	public LayerMask ballLayer;
+	public Transform explosionPoint; //Center point for explosion that is used for shake
+	public float explosionRadius; //Explosion radius of shake
+	public float explosionPower; //Explosion power for shake
+	public LayerMask ballLayer; //Layer Mask of balls
+	public CoinScript coinPrefab; //Prefab of coins
 	bool isPlaying; //Bool to check if game is playing or not
 	float hintTimeLeft; //Auto hint time left
 	Button shakeButton; //Shake Button
 	Button pauseButton; //Pause Button
+	GameObject canvas; //Canvas Game Object
+	RectTransform canvasRect; //Rect Transform of canvas
+	Camera UICamera; //The camera for UIs
 
 	public float HintTimeLeft{
 		get{
@@ -50,6 +54,9 @@ public class GameManagerScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		Screen.fullScreen = false;
+		UICamera = GameObject.Find ("UI Camera").GetComponent<Camera> ();
+		canvas = GameObject.Find ("Canvas");
+		canvasRect= canvas.GetComponent<RectTransform>();
 		shakeButton = GameObject.Find ("ShakeButton").GetComponent<Button> ();
 		pauseButton = GameObject.Find ("PauseButton").GetComponent<Button> ();
 		countdown.CountdownTime = time;
@@ -60,27 +67,17 @@ public class GameManagerScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (isPlaying) {
-			if(!shakeButton.interactable) shakeButton.interactable = true;
-			if(!pauseButton.interactable) pauseButton.interactable = true;
+			if(shakeButton != null && !shakeButton.interactable) shakeButton.interactable = true;
+			if(pauseButton != null && !pauseButton.interactable) pauseButton.interactable = true;
 			hintTimeLeft -= Time.deltaTime;
 			if (hintTimeLeft < 0.0f && !lineManagerScript.IsChaining ()) {
 				lineManagerScript.ShowHint ();
 				ResetHintCountdown ();
 			}
 		} else {
-			if (shakeButton.interactable) shakeButton.interactable = false;
-			if (pauseButton.interactable) pauseButton.interactable = false;
+			if (shakeButton != null && shakeButton.interactable) shakeButton.interactable = false;
+			if (pauseButton != null && pauseButton.interactable) pauseButton.interactable = false;
 		}
-//		if (IsPlaying && !ballGenerator.IsRecycling) {
-//			if (IsAllBallNotMoving ()) {
-//				ballGenerator.DisableBallRigidbodies ();
-//				hintButton.interactable = true;
-//			} else {
-//				hintButton.interactable = false;
-//			}
-//		} else {
-//			hintButton.interactable = false;
-//		}
 	}
 
 
@@ -112,13 +109,13 @@ public class GameManagerScript : MonoBehaviour {
 	//Called when game ends
 	public void GameOver(){
 		IsPlaying = false;
+		RetrieveRemainingCoin ();
 		resultScoreText.text = scoreText.Score.ToString ("000000");
 		lineManagerScript.Restart ();
 		lineManagerScript.enabled = false;
 		comboText.Idle ();
 		comboText.Combo = 0;
 		scoreText.Idle ();
-		scoreText.Score = 0;
 		ballGenerator.RetrieveAllBalls ();
 		resultPanel.gameObject.SetActive (true);
 	}
@@ -173,6 +170,38 @@ public class GameManagerScript : MonoBehaviour {
 			Time.timeScale = 0.0f;
 		} else {
 			Time.timeScale = 1.0f;
+		}
+	}
+
+	public void GenerateCoin(Vector3 generatePoint, int score){
+		CoinScript coin = Instantiate (coinPrefab, Vector3.zero, Quaternion.identity);
+		coin.gameObject.name = "Coin";
+		coin.Score = score;
+		coin.transform.SetParent(canvas.transform);
+		coin.transform.position = ConvertWorldPositionToCanvasPosition (generatePoint);
+	}
+
+	//Function to convert position from main camera to positon in canvas
+	//Source: http://answers.unity3d.com/questions/799616/unity-46-beta-19-how-to-convert-from-world-space-t.html
+	public Vector2 ConvertWorldPositionToCanvasPosition(Vector3 worldPoint){
+		Vector2 ViewportPosition=UICamera.WorldToViewportPoint(worldPoint);
+		Vector2 screenPosition = new Vector2
+		(
+			ViewportPosition.x * canvasRect.sizeDelta.x,
+			ViewportPosition.y * canvasRect.sizeDelta.y
+		);
+
+		return screenPosition;
+	}
+
+	public void RetrieveRemainingCoin(){
+		IEnumerator enumerator = canvas.transform.GetEnumerator ();
+		while (enumerator.MoveNext ()) {
+			Transform transform = enumerator.Current as Transform;
+			CoinScript coinScript = transform.GetComponent<CoinScript> ();
+			if (coinScript != null) {
+				scoreText.Score += coinScript.Score;
+			}
 		}
 	}
 }

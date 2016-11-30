@@ -112,8 +112,9 @@ public class LineManagerScript : MonoBehaviour {
 			BallScript ballScript = enumerator.Current as BallScript;
 			if (ballScript != null) {
 				if (chainedBalls.Count >= minChainForBomb) {
-					if (ballScript != lastBall)
+					if (ballScript != lastBall) {
 						ballScript.RetrievedAndShowScore (score);
+					}
 					else {
 						ballScript.RecycleToBomb ();
 						ballScript.ShowScore (score);
@@ -121,7 +122,7 @@ public class LineManagerScript : MonoBehaviour {
 				} else {
 					ballScript.RetrievedAndShowScore (score);
 				}
-				gameManager.AddScore (score);
+				gameManager.GenerateCoin (ballScript.transform.position, score);
 				score += lastScore;
 				lastScore = score - lastScore;
 			}
@@ -150,7 +151,7 @@ public class LineManagerScript : MonoBehaviour {
 //						if(!otherBallScript.BombParticle.isPlaying) ExplodeBomb (otherBallScript);
 //					} else {
 						otherBallScript.RetrievedAndShowScore (score);
-						gameManager.AddScore (score);
+						gameManager.GenerateCoin (otherBallScript.transform.position, score);
 						score += lastScore;
 						lastScore = score - lastScore;
 					}
