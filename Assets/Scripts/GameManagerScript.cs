@@ -26,6 +26,8 @@ public class GameManagerScript : MonoBehaviour {
 	public LayerMask ballLayer;
 	bool isPlaying; //Bool to check if game is playing or not
 	float hintTimeLeft; //Auto hint time left
+	Button shakeButton; //Shake Button
+	Button pauseButton; //Pause Button
 
 	public float HintTimeLeft{
 		get{
@@ -47,6 +49,8 @@ public class GameManagerScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		shakeButton = GameObject.Find ("ShakeButton").GetComponent<Button> ();
+		pauseButton = GameObject.Find ("PauseButton").GetComponent<Button> ();
 		countdown.CountdownTime = time;
 		lineManagerScript.MinChainForBomb = minChainForBomb;
 		StartCountdown ();
@@ -55,11 +59,16 @@ public class GameManagerScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (isPlaying) {
+			if(!shakeButton.interactable) shakeButton.interactable = true;
+			if(!pauseButton.interactable) pauseButton.interactable = true;
 			hintTimeLeft -= Time.deltaTime;
-			if (hintTimeLeft < 0.0f && !lineManagerScript.IsChaining()) {
+			if (hintTimeLeft < 0.0f && !lineManagerScript.IsChaining ()) {
 				lineManagerScript.ShowHint ();
 				ResetHintCountdown ();
 			}
+		} else {
+			if (shakeButton.interactable) shakeButton.interactable = false;
+			if (pauseButton.interactable) pauseButton.interactable = false;
 		}
 //		if (IsPlaying && !ballGenerator.IsRecycling) {
 //			if (IsAllBallNotMoving ()) {
@@ -154,7 +163,6 @@ public class GameManagerScript : MonoBehaviour {
 		foreach (Collider2D hit in colliders) {
 			Rigidbody2D rb = hit.GetComponent<Rigidbody2D>();
 			rb.AddForce(Vector2.up * explosionPower);
-
 		}
 	}
 

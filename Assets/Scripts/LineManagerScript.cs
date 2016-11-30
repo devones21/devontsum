@@ -12,6 +12,15 @@ public class LineManagerScript : MonoBehaviour {
 	int chosenIndex = -1; //Currently chosen balls index
 	int minChainForBomb = 7; //Min of ball need to be chained to make a bomb
 
+	public List<BallScript> ChainedBalls{
+		get{
+			return chainedBalls;
+		}
+		set{
+			chainedBalls = value;
+		}
+	}
+
 	public int MinChainForBomb{
 		get{
 			return minChainForBomb;
@@ -29,61 +38,60 @@ public class LineManagerScript : MonoBehaviour {
 	}
 
 	void Update() {
-
-		DrawRealLines (chainedBalls);
-		if (Input.GetMouseButtonDown (0)) {
-			BallScript ball = GetBallTouched ();
-			if (ball != null) {
-				if (!IsChaining()) {
-					if (ball.Index == BallScript.Constants.bombIndex) {
-						ExplodeBomb (ball);
+		if (gameManager.IsPlaying) {
+			DrawRealLines (ChainedBalls);
+			if (Input.GetMouseButtonDown (0)) {
+				BallScript ball = GetBallTouched ();
+				if (ball != null) {
+					if (!IsChaining ()) {
+						if (ball.Index == BallScript.Constants.bombIndex) {
+							ExplodeBomb (ball);
+						}
 					}
 				}
-			}
-		}
-		else if (Input.GetMouseButton (0)) {
-			BallScript ball = GetBallTouched ();
-			if (ball != null) {
-				if (!IsChaining()) {
-					if (ball.Index != BallScript.Constants.bombIndex) {
-						chosenIndex = ball.Index;
+			} else if (Input.GetMouseButton (0)) {
+				BallScript ball = GetBallTouched ();
+				if (ball != null) {
+					if (!IsChaining ()) {
+						if (ball.Index != BallScript.Constants.bombIndex) {
+							chosenIndex = ball.Index;
+							AddBall (ball);
+						}
+					} else if (chainedBalls.Contains (ball)) {
+						if (chainedBalls.Count >= 2) {
+							BallScript previousBall = chainedBalls [chainedBalls.Count - 2];
+							if (previousBall != null && previousBall == ball) {
+								BallScript lastBall = chainedBalls [chainedBalls.Count - 1];
+								chainedBalls.Remove (lastBall);
+								lastBall.Selectable ();
+							}
+						}
+					} else if (ball.Index == chosenIndex
+					          && !chainedBalls.Contains (ball)
+					          && IsThisBallChainable (chainedBalls, chainedBalls [chainedBalls.Count - 1], ball)) {
+						IEnumerator enumerator = hintBalls.GetEnumerator ();
+						while (enumerator.MoveNext ()) {
+							BallScript chainableBall = enumerator.Current as BallScript;
+							if (chainableBall.GetInstanceID () != ball.GetInstanceID () && !chainedBalls.Contains (chainableBall)) {
+								chainableBall.Idle ();
+							}
+						}
 						AddBall (ball);
 					}
-				} else if(chainedBalls.Contains(ball)){
-					if (chainedBalls.Count >= 2) {
-						BallScript previousBall = chainedBalls [chainedBalls.Count - 2];
-						if (previousBall != null && previousBall == ball) {
-							BallScript lastBall = chainedBalls [chainedBalls.Count - 1];
-							chainedBalls.Remove (lastBall);
-							lastBall.Selectable ();
-						}
+				}
+			} else if (Input.GetMouseButtonUp (0)) {
+				if (IsChaining ()) {
+					if (chainedBalls.Count >= 3) {
+						RetrieveBalls ();
+						gameManager.ballGenerator.EnableBallRigidbodies ();
+					} else {
+						Restart ();
 					}
-				} else if (ball.Index == chosenIndex
-					&& !chainedBalls.Contains(ball)
-				   && IsThisBallChainable (chainedBalls, chainedBalls [chainedBalls.Count - 1], ball)) {
-					IEnumerator enumerator = hintBalls.GetEnumerator ();
-					while (enumerator.MoveNext ()) {
-						BallScript chainableBall = enumerator.Current as BallScript;
-						if (chainableBall.GetInstanceID () != ball.GetInstanceID () && !chainedBalls.Contains (chainableBall)) {
-							chainableBall.Idle ();
-						}
-					}
-					AddBall (ball);
 				}
 			}
-		}
-		else if (Input.GetMouseButtonUp (0)) {
-			if (IsChaining()) {
-				if (chainedBalls.Count >= 3) {
-					RetrieveBalls ();
-					gameManager.ballGenerator.EnableBallRigidbodies ();
-				} else {
-					Restart ();
-				}
+			if (Input.GetMouseButtonDown (1)) {
+				Restart ();
 			}
-		}
-		if (Input.GetMouseButtonDown (1)) {
-			Restart ();
 		}
 	}
 
@@ -160,6 +168,7 @@ public class LineManagerScript : MonoBehaviour {
 		if (chainedBalls != null) {
 			chainedBalls.Clear ();
 		}
+		DrawRealLines (chainedBalls);
 	}
 
 	//Chain a ball
@@ -180,35 +189,39 @@ public class LineManagerScript : MonoBehaviour {
 
 	//Draw lines to a group of balls
 	public void DrawRealLines(List<BallScript> list){
-		if (list != null && list.Count > 1) {
-			Vector3[] ballPositions = new Vector3[list.Count];
-			for (int i = 0; i < list.Count; i++) {
-				ballPositions [i] = list [i].transform.position;
-				ballPositions [i].z = 0;
+		if (realLineRenderer != null) {
+			if (list != null && list.Count > 1) {
+				Vector3[] ballPositions = new Vector3[list.Count];
+				for (int i = 0; i < list.Count; i++) {
+					ballPositions [i] = list [i].transform.position;
+					ballPositions [i].z = 0;
+				}
+				ballPositions = Generate_Points (ballPositions, 100);
+				realLineRenderer.SetVertexCount (ballPositions.Length);
+				realLineRenderer.SetPositions (ballPositions);
+			} else {
+				realLineRenderer.SetVertexCount (0);
 			}
-			ballPositions = Generate_Points (ballPositions, 100);
-			realLineRenderer.SetVertexCount (ballPositions.Length);
-			realLineRenderer.SetPositions (ballPositions);
-		} else {
-			realLineRenderer.SetVertexCount (0);
 		}
 	}
 
 	//Draw lines to a group of balls
 	public IEnumerator DrawHintLines(List<BallScript> list){
-		if (list != null && list.Count > 1) {
-			Vector3[] ballPositions = new Vector3[list.Count];
-			for (int i = 0; i < list.Count; i++) {
-				ballPositions [i] = list [i].transform.position;
-				ballPositions [i].z = 0;
+		if (hintLineRenderer != null) {
+			if (list != null && list.Count > 1) {
+				Vector3[] ballPositions = new Vector3[list.Count];
+				for (int i = 0; i < list.Count; i++) {
+					ballPositions [i] = list [i].transform.position;
+					ballPositions [i].z = 0;
+				}
+				ballPositions = Generate_Points (ballPositions, 100);
+				hintLineRenderer.SetVertexCount (ballPositions.Length);
+				hintLineRenderer.SetPositions (ballPositions);
+				StartCoroutine (DrawHintLines (null));
+			} else {
+				yield return new WaitForSeconds (1.0f);
+				hintLineRenderer.SetVertexCount (0);
 			}
-			ballPositions = Generate_Points (ballPositions, 100);
-			hintLineRenderer.SetVertexCount (ballPositions.Length);
-			hintLineRenderer.SetPositions (ballPositions);
-			StartCoroutine (DrawHintLines (null));
-		} else {
-			yield return new WaitForSeconds (1.0f);
-			hintLineRenderer.SetVertexCount (0);
 		}
 	}
 
